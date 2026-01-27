@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { DashboardNav } from "./dashboard-nav";
 import { UserNav } from "./user-nav";
-import { Search } from "./search";
 import { ThemeToggle } from "@/components/mode-toggle";
 
 export function DashboardHeader() {
@@ -27,9 +26,6 @@ export function DashboardHeader() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-4">
-          <div className="w-full flex-1 md:w-auto md:flex-none">
-            <Search />
-          </div>
           <ThemeToggle />
           <UserNav />
         </div>

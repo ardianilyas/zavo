@@ -15,19 +15,19 @@ import {
 
 const components: { title: string; href: string; description: string }[] = [
   {
-    title: "All Projects",
-    href: "/dashboard/projects",
-    description: "View and manage all your ongoing and completed projects.",
+    title: "Donations",
+    href: "/dashboard/monetization/donations",
+    description: "Manage your donation settings, alerts, and recent tips.",
   },
   {
-    title: "Templates",
-    href: "/dashboard/projects/templates",
-    description: "Start quickly with pre-built project templates.",
+    title: "Memberships",
+    href: "/dashboard/monetization/memberships",
+    description: "Create and manage monthly subscription tiers for your fans.",
   },
   {
-    title: "Archived",
-    href: "/dashboard/projects/archived",
-    description: "Access your project history and archived items.",
+    title: "Merch Store",
+    href: "/dashboard/monetization/store",
+    description: "Sell digital and physical goods directly to your audience.",
   },
 ];
 
@@ -43,7 +43,7 @@ export function DashboardNav() {
           </NavigationMenuLink>
         </NavigationMenuItem>
         <NavigationMenuItem>
-          <NavigationMenuTrigger>Projects</NavigationMenuTrigger>
+          <NavigationMenuTrigger>Monetization</NavigationMenuTrigger>
           <NavigationMenuContent>
             <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px] ">
               {components.map((component) => (
@@ -60,8 +60,8 @@ export function DashboardNav() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <Link href="/dashboard/reporting" className={navigationMenuTriggerStyle()}>
-              Reporting
+            <Link href="/dashboard/analytics" className={navigationMenuTriggerStyle()}>
+              Analytics
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
