@@ -1,12 +1,14 @@
-import { ThemeToggle } from "@/components/mode-toggle";
+
+import Features from "@/components/landing/features";
+import Footer from "@/components/landing/footer";
+import Hero from "@/components/landing/hero";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen gap-2 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h1 className="text-3xl font-bold">Hi</h1>
-      <div>
-        <ThemeToggle />
-      </div>
-    </div>
+    <main className="min-h-screen bg-background font-sans antialiased">
+      <Hero />
+      <Features />
+      <Footer />
+    </main>
   );
 }
