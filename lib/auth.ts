@@ -10,4 +10,17 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+  user: {
+    additionalFields: {
+      username: {
+        type: "string",
+      },
+      bio: {
+        type: "string",
+      },
+      streamToken: {
+        type: "string",
+      },
+    }
+  }
 });
