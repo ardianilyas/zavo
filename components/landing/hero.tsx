@@ -43,7 +43,7 @@ export default function Hero() {
               animate={{ y: "0%", opacity: 1 }}
               exit={{ y: "-100%", opacity: 0 }}
               transition={{ duration: 0.5, ease: "circOut" }}
-              className="absolute bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+              className="absolute bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-emerald-500"
             >
               {words[index]}
             </motion.span>
@@ -69,7 +69,7 @@ export default function Hero() {
           className="flex flex-col items-center justify-center gap-4 sm:flex-row w-full sm:w-auto px-4"
         >
           <Link href="/register" className="w-full sm:w-auto">
-            <Button size="lg" className="h-12 w-full sm:w-auto rounded-full px-8 text-base">
+            <Button size="lg" className="h-12 w-full sm:w-auto sm:min-w-[200px] rounded-full px-12 text-base">
               Start for free
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -77,7 +77,7 @@ export default function Hero() {
           <Button
             size="lg"
             variant="outline"
-            className="h-12 w-full sm:w-auto rounded-full px-8 text-base"
+            className="h-12 w-full sm:w-auto sm:min-w-[200px] rounded-full px-12 text-base"
           >
             View Documentation
           </Button>
@@ -86,7 +86,7 @@ export default function Hero() {
 
       {/* Background Gradient */}
       <div className="absolute top-0 left-1/2 -z-10 h-[800px] w-[800px] sm:h-[1000px] sm:w-[1000px] -translate-x-1/2 -translate-y-1/2 opacity-30 dark:opacity-20 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-radial from-indigo-500/40 to-transparent blur-3xl rounded-full" />
+        <div className="absolute inset-0 bg-gradient-radial from-green-400/40 to-transparent blur-3xl rounded-full" />
       </div>
     </section>
   );
