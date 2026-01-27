@@ -3,7 +3,6 @@ import { Albert_Sans } from "next/font/google";
 import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "@/components/theme-provider";
-import Navbar from "@/components/layout/navbar";
 
 const albertSans = Albert_Sans({
   variable: "--font-albert-sans",
@@ -37,7 +36,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCProvider>
-            <Navbar />
             {children}
           </TRPCProvider>
         </ThemeProvider>
