@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { randomBytes } from "crypto";
 
 export const userRouter = router({
   updateProfile: protectedProcedure
@@ -35,7 +36,7 @@ export const userRouter = router({
       // Generate a unique stream token if not exists
       let streamToken = ctx.session?.user.streamToken;
       if (!streamToken) {
-        streamToken = crypto.randomUUID();
+        streamToken = randomBytes(16).toString("hex");
       }
 
       await db
@@ -48,5 +49,17 @@ export const userRouter = router({
         .where(eq(user.id, ctx.session?.user.id));
 
       return { success: true };
+    }),
+
+  regenerateStreamToken: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const newToken = randomBytes(16).toString("hex");
+
+      await db
+        .update(user)
+        .set({ streamToken: newToken })
+        .where(eq(user.id, ctx.session?.user.id));
+
+      return { streamToken: newToken };
     }),
 });

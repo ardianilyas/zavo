@@ -5,6 +5,7 @@ import { donation, user, transaction } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
+import { EventService } from "@/lib/events";
 
 export const donationRouter = router({
   create: publicProcedure
@@ -109,9 +110,24 @@ export const donationRouter = router({
         throw new TRPCError({ code: "NOT_FOUND" });
       }
 
+      const triggerEvent = async (donationId: string) => {
+        const d = await db.query.donation.findFirst({ where: eq(donation.id, donationId) });
+        if (!d) return;
+        const r = await db.query.user.findFirst({ where: eq(user.id, d.recipientId) });
+        if (r && r.username) {
+          await EventService.triggerDonation(r.username, {
+            donorName: d.donorName,
+            amount: d.amount,
+            message: d.message || "",
+            formattedAmount: `Rp ${d.amount.toLocaleString("id-ID")}`
+          });
+        }
+      };
+
       // Mock fallback
       if (targetDonation.externalId && targetDonation.externalId.startsWith("mock-")) {
         await db.update(donation).set({ status: "PAID", paidAt: new Date() }).where(eq(donation.id, input.donationId));
+        await triggerEvent(input.donationId);
         return { success: true, method: "MOCK_DB_UPDATE" };
       }
 
@@ -128,6 +144,7 @@ export const donationRouter = router({
         console.error("Simulation Error", e);
         // Fallback manual
         await db.update(donation).set({ status: "PAID", paidAt: new Date() }).where(eq(donation.id, input.donationId));
+        await triggerEvent(input.donationId);
         return { success: true, method: "FALLBACK_MANUAL" };
       }
     }),

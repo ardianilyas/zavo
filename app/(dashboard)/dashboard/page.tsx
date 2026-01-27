@@ -8,8 +8,24 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { db } from "@/db";
+import { user } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { StreamKeyCard } from "@/features/dashboard/components/stream-key-card";
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) redirect("/");
+
+  const userData = await db.query.user.findFirst({
+    where: eq(user.id, session.user.id)
+  });
+
+  if (!userData) redirect("/");
+
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
@@ -23,6 +39,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <TabsList className="bg-muted/50 p-1">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
+            <TabsTrigger value="stream" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Stream Setup</TabsTrigger>
             <TabsTrigger value="donations" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Donations</TabsTrigger>
             <TabsTrigger value="members" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Members</TabsTrigger>
             <TabsTrigger value="shop" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Shop</TabsTrigger>
@@ -215,8 +232,14 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
-
         </TabsContent>
+
+        <TabsContent value="stream" className="space-y-6">
+          <div className="grid gap-4 grid-cols-1">
+            <StreamKeyCard streamToken={userData.streamToken || null} />
+          </div>
+        </TabsContent>
+
       </Tabs>
     </div>
   );

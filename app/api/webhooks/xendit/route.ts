@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { donation, transaction } from "@/db/schema";
+import { donation, transaction, user } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { EventService } from "@/lib/events";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +46,20 @@ export async function POST(req: NextRequest) {
         await db.update(donation)
           .set({ status: "PAID", paidAt: new Date() })
           .where(eq(donation.id, targetDonation.id));
+
+        // Fetch recipient to get username for channel
+        const recipient = await db.query.user.findFirst({
+          where: eq(user.id, targetDonation.recipientId)
+        });
+
+        if (recipient && recipient.username) {
+          await EventService.triggerDonation(recipient.username, {
+            donorName: targetDonation.donorName,
+            amount: targetDonation.amount,
+            message: targetDonation.message || "",
+            formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+          });
+        }
 
         await db.insert(transaction).values({
           donationId: targetDonation.id,
