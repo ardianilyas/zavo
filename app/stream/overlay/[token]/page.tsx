@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { creator } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { OverlayClient } from "./overlay-client";
@@ -13,12 +13,12 @@ interface PageProps {
 export default async function OverlayPage({ params }: PageProps) {
   const { token } = await params;
 
-  // Find user by streamToken only
-  const targetUser = await db.query.user.findFirst({
-    where: (users, { eq }) => eq(users.streamToken, token)
+  // Find creator by streamToken only
+  const targetCreator = await db.query.creator.findFirst({
+    where: (creators, { eq }) => eq(creators.streamToken, token)
   });
 
-  if (!targetUser) {
+  if (!targetCreator) {
     return notFound();
   }
 
@@ -27,7 +27,7 @@ export default async function OverlayPage({ params }: PageProps) {
   const cluster = process.env.PUSHER_CLUSTER || process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap1";
 
   // Channel Name
-  const channelName = `stream-${targetUser.username}`;
+  const channelName = `stream-${targetCreator.username}`;
 
   return (
     <OverlayClient

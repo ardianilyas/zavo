@@ -15,6 +15,20 @@ export const user = pgTable("user", {
   streamToken: text("stream_token").unique(),
 });
 
+export const creator = pgTable("creator", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: text("user_id").notNull().references(() => user.id),
+  username: text("username").unique().notNull(),
+  name: text("name").notNull(),
+  bio: text("bio"),
+  image: text("image"),
+  coverImage: text("cover_image"),
+  streamToken: text("stream_token").unique(),
+  balance: integer("balance").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // ... session, account, verification tables ... can remain unchanged in replacement if I target correctly or just overwrite if small enough.
 // Actually, to overlap correctly, I will target the imports and the bottom of the file.
 
@@ -56,7 +70,7 @@ export const verification = pgTable("verification", {
 
 export const donation = pgTable("donation", {
   id: uuid("id").primaryKey().defaultRandom(),
-  recipientId: text("recipient_id").references(() => user.id).notNull(),
+  recipientId: uuid("recipient_id").references(() => creator.id).notNull(),
   donorId: text("donor_id").references(() => user.id),
   donorName: text("donor_name").notNull(),
   donorEmail: text("donor_email"),

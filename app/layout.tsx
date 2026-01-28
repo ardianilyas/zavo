@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Albert_Sans } from "next/font/google";
-import "./global.css";
+import "./globals.css";
 import { TRPCProvider } from "@/trpc/provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";

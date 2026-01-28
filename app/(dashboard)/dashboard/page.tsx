@@ -12,7 +12,7 @@ import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { user, creator } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { StreamKeyCard } from "@/features/dashboard/components/stream-key-card";
 import { TestOverlayCard } from "@/features/dashboard/components/test-overlay-card";
@@ -21,11 +21,32 @@ export default async function DashboardPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/");
 
-  const userData = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id)
+  // 1. Try to find existing creator profile
+  let creatorProfile = await db.query.creator.findFirst({
+    where: eq(creator.userId, session.user.id)
   });
 
-  if (!userData) redirect("/");
+  // 2. Auto-Migration: If no creator profile, create one from User data
+  if (!creatorProfile) {
+    // Fetch user data fallback
+    const userData = await db.query.user.findFirst({
+      where: eq(user.id, session.user.id)
+    });
+
+    if (userData) {
+      const newCreator = await db.insert(creator).values({
+        userId: session.user.id,
+        username: userData.username || `user${Date.now()}`, // Fallback if no username
+        name: userData.name,
+        bio: userData.bio,
+        image: userData.image,
+        streamToken: userData.streamToken, // Migrate token!
+      }).returning();
+      creatorProfile = newCreator[0];
+    }
+  }
+
+  if (!creatorProfile) redirect("/"); // Should not happen after migration logic
 
   return (
     <div className="flex flex-col space-y-6">
@@ -51,10 +72,10 @@ export default async function DashboardPage() {
           {/* Row 1: Stats */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <StatsCard
-              title="Monthly Earnings"
-              value="$12,450.00"
+              title="Current Balance"
+              value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(creatorProfile.balance)}
               icon={DollarSign}
-              description="+15% from last month"
+              description="Available for withdrawal"
             />
             <StatsCard
               title="Active Members"
@@ -237,7 +258,7 @@ export default async function DashboardPage() {
 
         <TabsContent value="stream" className="space-y-6">
           <div className="grid gap-4 grid-cols-1">
-            <StreamKeyCard streamToken={userData.streamToken || null} />
+            <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
             <TestOverlayCard />
           </div>
         </TabsContent>

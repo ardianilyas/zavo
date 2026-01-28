@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { donation, transaction, user } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { donation, transaction, user, creator } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { EventService } from "@/lib/events";
 
 export async function POST(req: NextRequest) {
@@ -43,13 +43,20 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ message: "Already Paid" });
         }
 
+        // ATOMIC BALANCE UPDATE
+        await db.update(creator)
+          .set({
+            balance: sql`${creator.balance} + ${targetDonation.amount}`
+          })
+          .where(eq(creator.id, targetDonation.recipientId));
+
         await db.update(donation)
           .set({ status: "PAID", paidAt: new Date() })
           .where(eq(donation.id, targetDonation.id));
 
         // Fetch recipient to get username for channel
-        const recipient = await db.query.user.findFirst({
-          where: eq(user.id, targetDonation.recipientId)
+        const recipient = await db.query.creator.findFirst({
+          where: eq(creator.id, targetDonation.recipientId)
         });
 
         if (recipient && recipient.username) {
@@ -104,10 +111,31 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Already Paid" });
       }
 
+      // ATOMIC BALANCE UPDATE
+      await db.update(creator)
+        .set({
+          balance: sql`${creator.balance} + ${targetDonation.amount}`
+        })
+        .where(eq(creator.id, targetDonation.recipientId));
+
       // Update to PAID
       await db.update(donation)
         .set({ status: "PAID", paidAt: new Date() })
         .where(eq(donation.id, targetDonation.id));
+
+      // Fetch recipient for notifications (fix: logic was missing in original block, good practice to add)
+      const recipient = await db.query.creator.findFirst({
+        where: eq(creator.id, targetDonation.recipientId)
+      });
+
+      if (recipient && recipient.username) {
+        await EventService.triggerDonation(recipient.username, {
+          donorName: targetDonation.donorName,
+          amount: targetDonation.amount,
+          message: targetDonation.message || "",
+          formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+        });
+      }
 
       // Log Transaction
       await db.insert(transaction).values({

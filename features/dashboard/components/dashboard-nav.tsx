@@ -44,8 +44,8 @@ export function DashboardNav() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
-            <Link href="/onboarding" className={navigationMenuTriggerStyle()}>
-              Creator Setup
+            <Link href="/creators" className={navigationMenuTriggerStyle()}>
+              Creators
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/db";
-import { donation, user, transaction } from "@/db/schema";
+import { donation, user, transaction, creator } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
@@ -19,8 +19,9 @@ export const donationRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const recipient = await db.query.user.findFirst({
-        where: eq(user.username, input.recipientUsername),
+      // Find Creator by username (Public Persona)
+      const recipient = await db.query.creator.findFirst({
+        where: eq(creator.username, input.recipientUsername),
       });
 
       if (!recipient) {
@@ -45,7 +46,7 @@ export const donationRouter = router({
           channelCode: "ID_DANA", // User requested specific channel or we can omit
           metadata: {
             sku: `donation-${recipient.username}`,
-            recipientId: recipient.id,
+            recipientId: recipient.id, // Now Creator ID
             donorName: input.donorName,
             donorId: donorId || undefined, // Metadata tracking
             message: input.message || ""
@@ -69,7 +70,7 @@ export const donationRouter = router({
       const newDonation = await db
         .insert(donation)
         .values({
-          recipientId: recipient.id,
+          recipientId: recipient.id, // Stores Creator ID
           donorId: donorId,
           donorName: input.donorName,
           donorEmail: input.donorEmail || null,
@@ -118,7 +119,8 @@ export const donationRouter = router({
       const triggerEvent = async (donationId: string) => {
         const d = await db.query.donation.findFirst({ where: eq(donation.id, donationId) });
         if (!d) return;
-        const r = await db.query.user.findFirst({ where: eq(user.id, d.recipientId) });
+        // Find recipient in CREATOR table
+        const r = await db.query.creator.findFirst({ where: eq(creator.id, d.recipientId) });
         if (r && r.username) {
           await EventService.triggerDonation(r.username, {
             donorName: d.donorName,
@@ -158,11 +160,16 @@ export const donationRouter = router({
     .mutation(async ({ ctx }) => {
       const { user } = ctx.session;
 
-      if (!user.username) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "User has no username" });
+      // Find Creator Profile for this User
+      const creatorProfile = await db.query.creator.findFirst({
+        where: eq(creator.userId, user.id)
+      });
+
+      if (!creatorProfile || !creatorProfile.username) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "User has no creator profile" });
       }
 
-      await EventService.triggerDonation(user.username, {
+      await EventService.triggerDonation(creatorProfile.username, {
         donorName: "Test User",
         amount: 50000,
         message: "This is a test donation alert to verify your overlay!",

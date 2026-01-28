@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { db } from "@/db";
-import { user } from "@/db/schema";
+import { creator } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,11 +16,11 @@ interface PublicProfilePageProps {
 export default async function PublicProfilePage({ params }: PublicProfilePageProps) {
   const { username } = await params;
 
-  const creator = await db.query.user.findFirst({
-    where: eq(user.username, username),
+  const creatorProfile = await db.query.creator.findFirst({
+    where: eq(creator.username, username),
   });
 
-  if (!creator) {
+  if (!creatorProfile) {
     notFound();
   }
 
@@ -28,16 +28,16 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
     <div className="w-full max-w-md space-y-8">
       <div className="flex flex-col items-center text-center space-y-4">
         <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-          <AvatarImage src={creator.image || ""} alt={creator.name} />
-          <AvatarFallback>{creator.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={creatorProfile.image || ""} alt={creatorProfile.name} />
+          <AvatarFallback>{creatorProfile.name.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold">{creator.name}</h1>
+          <h1 className="text-3xl font-bold">{creatorProfile.name}</h1>
           <p className="text-muted-foreground max-w-xs mx-auto">
-            {creator.bio || "No bio yet."}
+            {creatorProfile.bio || "No bio yet."}
           </p>
           <div className="flex gap-2 justify-center">
-            <Badge variant="secondary">@{creator.username}</Badge>
+            <Badge variant="secondary">@{creatorProfile.username}</Badge>
           </div>
         </div>
       </div>
@@ -46,11 +46,11 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
         <CardHeader>
           <CardTitle>Send Support</CardTitle>
           <CardDescription>
-            Support {creator.name} with a donation.
+            Support {creatorProfile.name} with a donation.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <DonationForm recipientUsername={creator.username || ""} recipientName={creator.name} />
+          <DonationForm recipientUsername={creatorProfile.username || ""} recipientName={creatorProfile.name} />
         </CardContent>
       </Card>
     </div>
