@@ -57,6 +57,7 @@ export const verification = pgTable("verification", {
 export const donation = pgTable("donation", {
   id: uuid("id").primaryKey().defaultRandom(),
   recipientId: text("recipient_id").references(() => user.id).notNull(),
+  donorId: text("donor_id").references(() => user.id),
   donorName: text("donor_name").notNull(),
   donorEmail: text("donor_email"),
   amount: integer("amount").notNull(),

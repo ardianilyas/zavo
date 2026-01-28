@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../init";
+import { router, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/db";
 import { donation, user, transaction } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -18,7 +18,7 @@ export const donationRouter = router({
         message: z.string().max(255).optional(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const recipient = await db.query.user.findFirst({
         where: eq(user.username, input.recipientUsername),
       });
@@ -26,6 +26,9 @@ export const donationRouter = router({
       if (!recipient) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Recipient not found" });
       }
+
+      // Check for authenticated user to link donation
+      const donorId = ctx.session?.user?.id || null;
 
       const isDev = process.env.NODE_ENV === "development";
       const referenceId = `zavo-${Date.now()}`;
@@ -44,6 +47,7 @@ export const donationRouter = router({
             sku: `donation-${recipient.username}`,
             recipientId: recipient.id,
             donorName: input.donorName,
+            donorId: donorId || undefined, // Metadata tracking
             message: input.message || ""
           }
         });
@@ -66,6 +70,7 @@ export const donationRouter = router({
         .insert(donation)
         .values({
           recipientId: recipient.id,
+          donorId: donorId,
           donorName: input.donorName,
           donorEmail: input.donorEmail || null,
           amount: input.amount,
@@ -147,5 +152,23 @@ export const donationRouter = router({
         await triggerEvent(input.donationId);
         return { success: true, method: "FALLBACK_MANUAL" };
       }
+    }),
+
+  sendTestAlert: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const { user } = ctx.session;
+
+      if (!user.username) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "User has no username" });
+      }
+
+      await EventService.triggerDonation(user.username, {
+        donorName: "Test User",
+        amount: 50000,
+        message: "This is a test donation alert to verify your overlay!",
+        formattedAmount: "Rp 50.000"
+      });
+
+      return { success: true };
     }),
 });

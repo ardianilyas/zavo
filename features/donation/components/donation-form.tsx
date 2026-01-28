@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/form";
 import { api } from "@/trpc/client";
 import { toast } from "sonner";
+import { authClient } from "@/lib/auth-client";
+import { useEffect } from "react";
 
 const donationSchema = z.object({
   amount: z.coerce.number().min(10000, "Minimum donation is Rp 10.000"),
@@ -40,6 +42,8 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
     isDev: boolean;
   } | null>(null);
 
+  const { data: session } = authClient.useSession();
+
   const form = useForm<z.infer<typeof donationSchema>>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
@@ -48,6 +52,13 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
       message: "",
     },
   });
+
+  // Auto-fill donor name if logged in and field is empty
+  useEffect(() => {
+    if (session?.user?.name && !form.getValues("donorName")) {
+      form.setValue("donorName", session.user.name);
+    }
+  }, [session, form]);
 
   const createMutation = api.donation.create.useMutation({
     onSuccess: (data) => {

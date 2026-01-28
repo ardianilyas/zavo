@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Pusher from "pusher-js";
 import { DonationEventData } from "@/lib/events";
 import { AnimatePresence, motion } from "framer-motion";
@@ -14,6 +14,8 @@ interface OverlayClientProps {
 export function OverlayClient({ channelName, cluster, appKey }: OverlayClientProps) {
   const [queue, setQueue] = useState<DonationEventData[]>([]);
   const [currentAlert, setCurrentAlert] = useState<DonationEventData | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const pusher = new Pusher(appKey, {
@@ -32,45 +34,79 @@ export function OverlayClient({ channelName, cluster, appKey }: OverlayClientPro
     };
   }, [channelName, cluster, appKey]);
 
+  // Cleanup on unmount
   useEffect(() => {
-    if (!currentAlert && queue.length > 0) {
-      const next = queue[0];
-      setCurrentAlert(next);
-      setQueue((prev) => prev.slice(1));
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
-      // Play sound (optional, placeholder)
-      // const audio = new Audio("/alert.mp3");
-      // audio.play().catch(e => console.error("Audio play failed", e));
+  useEffect(() => {
+    if (!currentAlert && queue.length > 0 && !isProcessing) {
+      setIsProcessing(true);
 
-      // Show for 5 seconds then clear
-      setTimeout(() => {
-        setCurrentAlert(null);
-      }, 5000);
+      // Delay to allow clear transition (1 second gap)
+      timeoutRef.current = setTimeout(() => {
+        const next = queue[0]; // Note: queue might be stale here, but head should be stable for FIFO
+        setCurrentAlert(next);
+
+        // Use functional update to safely remove the head regardless of new additions
+        setQueue((prev) => prev.slice(1));
+
+        setIsProcessing(false);
+
+        // Play sound (optional, placeholder)
+        // const audio = new Audio("/alert.mp3");
+        // audio.play().catch(e => console.error("Audio play failed", e));
+
+        // Show for 10 seconds then clear
+        setTimeout(() => {
+          setCurrentAlert(null);
+        }, 10000);
+      }, 1000);
     }
-  }, [queue, currentAlert]);
+  }, [queue, currentAlert, isProcessing]);
 
   return (
-    <div className="w-full h-screen flex flex-col items-center justify-end pb-20 overflow-hidden bg-transparent">
+    <div className="w-full h-screen flex flex-col items-center justify-start pt-10 overflow-hidden bg-transparent font-sans">
+
+      {/* PREVIEW UI */}
+      {/* <AnimatePresence mode="wait">
+        {!currentAlert && (
+          <motion.div
+            initial={{ y: -50, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -50, opacity: 0, scale: 0.9 }}
+            className="flex flex-col w-full max-w-lg items-start text-left p-8 bg-[#fae8ff] border border-[#f5d0fe] rounded-2xl shadow-xl hover:scale-105 transition-transform duration-300"
+          >
+            <div className="text-lg font-bold text-[#701a75] w-full truncate">
+              ardian donated Rp 200.000
+            </div>
+
+            <div className="mt-2 text-[15px] font-medium text-[#86198f]/80 leading-relaxed break-words w-full">
+              Keep up the good work!
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence> */}
+
+      {/* DYNAMIC ALERT UI */}
       <AnimatePresence mode="wait">
         {currentAlert && (
           <motion.div
-            initial={{ y: 100, opacity: 0, scale: 0.8 }}
+            key={JSON.stringify(currentAlert)}
+            initial={{ y: -50, opacity: 0, scale: 0.9 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 100, opacity: 0, scale: 0.8 }}
-            className="flex flex-col items-center text-center p-6 bg-white/90 border-4 border-yellow-400 rounded-xl shadow-2xl max-w-lg"
+            exit={{ y: -50, opacity: 0, scale: 0.9 }}
+            className="flex flex-col w-full max-w-2xl items-start text-left p-8 bg-[#fae8ff] border border-[#f5d0fe] rounded-2xl shadow-xl z-50"
           >
-            <div className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent animate-pulse">
-              NEW DONATION!
+            <div className="text-lg font-bold text-[#701a75] w-full truncate">
+              {currentAlert.donorName} donated {currentAlert.formattedAmount}
             </div>
-            <div className="text-4xl font-extrabold mt-2 text-slate-900">
-              {currentAlert.formattedAmount}
-            </div>
-            <div className="text-xl font-semibold mt-1 text-slate-700">
-              from <span className="text-blue-600">{currentAlert.donorName}</span>
-            </div>
+
             {currentAlert.message && (
-              <div className="mt-4 text-lg italic text-slate-600 font-medium bg-slate-100 p-3 rounded-lg w-full break-words">
-                "{currentAlert.message}"
+              <div className="mt-2 text-[15px] font-medium text-[#86198f]/80 leading-relaxed break-words w-full">
+                {currentAlert.message}
               </div>
             )}
           </motion.div>

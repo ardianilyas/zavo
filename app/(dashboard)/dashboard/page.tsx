@@ -15,6 +15,7 @@ import { db } from "@/db";
 import { user } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { StreamKeyCard } from "@/features/dashboard/components/stream-key-card";
+import { TestOverlayCard } from "@/features/dashboard/components/test-overlay-card";
 
 export default async function DashboardPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -237,6 +238,7 @@ export default async function DashboardPage() {
         <TabsContent value="stream" className="space-y-6">
           <div className="grid gap-4 grid-cols-1">
             <StreamKeyCard streamToken={userData.streamToken || null} />
+            <TestOverlayCard />
           </div>
         </TabsContent>
 
