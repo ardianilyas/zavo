@@ -45,14 +45,14 @@ export function RevenueChart({ data }: RevenueChartProps) {
               <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
           <XAxis
             dataKey="date"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
             tickFormatter={(value) => format(parseISO(value), "MMM d")}
-            stroke="hsl(var(--muted-foreground))"
+            tick={{ fill: "var(--muted-foreground)" }}
             fontSize={12}
           />
           <YAxis
@@ -66,7 +66,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                 currency: "IDR",
               }).format(value)
             }
-            stroke="hsl(var(--muted-foreground))"
+            tick={{ fill: "var(--muted-foreground)" }}
             fontSize={12}
           />
           <Tooltip
