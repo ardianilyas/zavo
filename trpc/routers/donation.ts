@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
 import { EventService } from "@/lib/events";
+import { randomUUID } from "crypto";
 
 export const donationRouter = router({
   create: publicProcedure
@@ -32,7 +33,7 @@ export const donationRouter = router({
       const donorId = ctx.session?.user?.id || null;
 
       const isDev = process.env.NODE_ENV === "development";
-      const referenceId = `zavo-${Date.now()}`;
+      const referenceId = `zavo-${randomUUID()}`;
       let externalId = referenceId;
       let xenditId = "";
       let paymentUrl = "";
