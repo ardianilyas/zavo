@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 export function TransactionLedger({ creatorId }: { creatorId: string }) {
-  const { data: history, isLoading } = useTransactionHistory(creatorId);
+  const { data: history, isLoading } = useTransactionHistory(creatorId, 5);
 
   if (isLoading) {
     return (
@@ -24,6 +24,9 @@ export function TransactionLedger({ creatorId }: { creatorId: string }) {
           <History className="h-5 w-5 text-primary" />
           Transaction History
         </CardTitle>
+        <button className="text-xs text-muted-foreground hover:text-primary transition-colors">
+          View All
+        </button>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

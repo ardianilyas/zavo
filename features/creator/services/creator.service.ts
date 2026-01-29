@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { creator, donation } from "@/db/schema";
-import { eq, sum, count, and } from "drizzle-orm";
+import { eq, sum, count, and, gte, sql } from "drizzle-orm";
+import { subMonths, format, eachDayOfInterval } from "date-fns";
 
 export class CreatorService {
   static async getProfileByUserId(userId: string) {
@@ -61,6 +62,48 @@ export class CreatorService {
       activeMembers: 0,
       newFollowers: 0
     };
+  }
+
+  static async getRevenueChartData(creatorId: string) {
+    const today = new Date();
+    const threeMonthsAgo = subMonths(today, 3);
+
+    // Group donations by date (created_at::date) and sum amount
+    const dbData = await db
+      .select({
+        date: sql<string>`to_char(${donation.createdAt}, 'YYYY-MM-DD')`,
+        total: sum(donation.amount),
+      })
+      .from(donation)
+      .where(
+        and(
+          eq(donation.recipientId, creatorId),
+          eq(donation.status, "PAID"),
+          gte(donation.createdAt, threeMonthsAgo)
+        )
+      )
+      .groupBy(sql`to_char(${donation.createdAt}, 'YYYY-MM-DD')`)
+      .orderBy(sql`to_char(${donation.createdAt}, 'YYYY-MM-DD')`);
+
+    // Create a map for quick lookup
+    const revenueMap = new Map(
+      dbData.map((item) => [item.date, Number(item.total || 0)])
+    );
+
+    // Generate all dates in the interval
+    const allDays = eachDayOfInterval({
+      start: threeMonthsAgo,
+      end: today,
+    });
+
+    // Merge dates with DB data
+    return allDays.map((day) => {
+      const dateStr = format(day, "yyyy-MM-dd");
+      return {
+        date: dateStr,
+        revenue: revenueMap.get(dateStr) || 0,
+      };
+    });
   }
 }
 

@@ -13,8 +13,8 @@ export const useWithdraw = (onSuccess?: () => void) => {
   });
 };
 
-export const useTransactionHistory = (creatorId: string) => {
-  return api.payout.getHistory.useQuery({ creatorId }, {
+export const useTransactionHistory = (creatorId: string, limit?: number) => {
+  return api.payout.getHistory.useQuery({ creatorId, limit }, {
     enabled: !!creatorId
   });
 };

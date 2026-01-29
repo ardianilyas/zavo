@@ -5,7 +5,8 @@ import {
   Heart,
   DollarSign,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  BarChart3
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { WithdrawalDialog } from "@/features/wallet/components/withdrawal-dialog";
 import { TransactionLedger } from "@/features/wallet/components/transaction-ledger";
 
+import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
+
 interface DashboardViewProps {
   creatorProfile: any;
   stats?: {
@@ -24,9 +27,13 @@ interface DashboardViewProps {
     activeMembers: number;
     newFollowers: number;
   } | null;
+  chartData?: {
+    date: string;
+    revenue: number;
+  }[];
 }
 
-export function DashboardView({ creatorProfile, stats }: DashboardViewProps) {
+export function DashboardView({ creatorProfile, stats, chartData = [] }: DashboardViewProps) {
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
@@ -104,25 +111,24 @@ export function DashboardView({ creatorProfile, stats }: DashboardViewProps) {
               />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-              <Card className="col-span-4 backdrop-blur-md bg-card/50 border-primary/10">
+
+            <div className="grid gap-6 grid-cols-1">
+              <Card className="backdrop-blur-md bg-card/50 border-primary/10">
                 <CardHeader>
-                  <CardTitle>Earnings Overview</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Earnings Overview
+                  </CardTitle>
                   <CardDescription>
                     Your revenue breakdown across donations, memberships, and shop.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pl-2">
-                  <div className="h-[350px] flex items-center justify-center text-muted-foreground border border-dashed rounded-md bg-muted/20">
-                    <div className="text-center">
-                      <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-50" />
-                      <p>Revenue Chart Visualization</p>
-                    </div>
-                  </div>
+                <CardContent>
+                  <RevenueChart data={chartData} />
                 </CardContent>
               </Card>
 
-              <div className="col-span-3">
+              <div className="w-full">
                 <TransactionLedger creatorId={creatorProfile.id} />
               </div>
             </div>

@@ -28,7 +28,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const stats = creatorProfile ? await CreatorService.getStats(creatorProfile.id) : null;
+  const chartData = creatorProfile ? await CreatorService.getRevenueChartData(creatorProfile.id) : [];
 
   // 2. Render View
-  return <DashboardView creatorProfile={creatorProfile} stats={stats} />;
+  return <DashboardView creatorProfile={creatorProfile} stats={stats} chartData={chartData} />;
 }

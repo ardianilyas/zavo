@@ -102,8 +102,8 @@ export const payoutRouter = router({
 
   // Get history for a specific creator
   getHistory: protectedProcedure
-    .input(z.object({ creatorId: z.string() }))
-    .query(async ({ input, ctx }: { input: { creatorId: string }, ctx: any }) => {
+    .input(z.object({ creatorId: z.string(), limit: z.number().optional() }))
+    .query(async ({ input, ctx }: { input: { creatorId: string, limit?: number }, ctx: any }) => {
       // Verify ownership
       const targetCreator = await db.query.creator.findFirst({
         where: (c, { eq, and }) => and(eq(c.id, input.creatorId), eq(c.userId, ctx.session.user.id))
@@ -113,7 +113,7 @@ export const payoutRouter = router({
       const history = await db.query.ledgerTransaction.findMany({
         where: eq(ledgerTransaction.creatorId, input.creatorId),
         orderBy: [desc(ledgerTransaction.createdAt)],
-        limit: 50
+        limit: input.limit || 50
       });
 
       return history;
