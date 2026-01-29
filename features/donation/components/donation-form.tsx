@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,23 +10,14 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { api } from "@/trpc/client";
-import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
-import { useEffect } from "react";
-
-const donationSchema = z.object({
-  amount: z.coerce.number().min(10000, "Minimum donation is Rp 10.000"),
-  donorName: z.string().min(1, "Name is required"),
-  donorEmail: z.string().email().optional().or(z.literal("")),
-  message: z.string().max(255).optional(),
-});
+import { donationSchema, DonationInput } from "../schema/donation.schema";
+import { useDonate, useSimulatePayment } from "../hooks/use-donate";
 
 interface DonationFormProps {
   recipientUsername: string;
@@ -44,48 +34,39 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
 
   const { data: session } = authClient.useSession();
 
-  const form = useForm<z.infer<typeof donationSchema>>({
+  const form = useForm<DonationInput>({
     resolver: zodResolver(donationSchema),
     defaultValues: {
       amount: 10000,
       donorName: "",
       message: "",
+      donorEmail: ""
     },
   });
 
-  // Auto-fill donor name if logged in and field is empty
+  // Auto-fill donor name
   useEffect(() => {
     if (session?.user?.name && !form.getValues("donorName")) {
       form.setValue("donorName", session.user.name);
     }
   }, [session, form]);
 
-  const createMutation = api.donation.create.useMutation({
-    onSuccess: (data) => {
-      setPaymentData({
-        donationId: data.donationId,
-        paymentUrl: data.paymentUrl,
-        isDev: data.isDev
-      });
-      setStep("payment");
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
+  const { mutate: createDonation, isPending: isCreating } = useDonate((data) => {
+    setPaymentData({
+      donationId: data.donationId,
+      paymentUrl: data.paymentUrl,
+      isDev: data.isDev
+    });
+    setStep("payment");
   });
 
-  const simulateMutation = api.donation.simulatePay.useMutation({
-    onSuccess: () => {
-      toast.success("Payment Simulated Successfully!");
-      // Ideally redirect or show success state
-      setStep("form"); // Reset for now
-      form.reset();
-    },
-    onError: (err) => toast.error(err.message)
+  const { mutate: simulatePayment, isPending: isSimulating } = useSimulatePayment(() => {
+    setStep("form");
+    form.reset();
   });
 
-  function onSubmit(values: z.infer<typeof donationSchema>) {
-    createMutation.mutate({
+  function onSubmit(values: DonationInput) {
+    createDonation({
       recipientUsername,
       ...values,
     });
@@ -100,7 +81,6 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
         </div>
 
         <div className="border p-4 rounded-lg bg-white shadow-sm">
-          {/* Using Next Image for optimization, but for external URL usually need config. Using img tag for simplicity with external QR API */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={paymentData.paymentUrl}
@@ -114,13 +94,11 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
             variant="outline"
             className="w-full border-dashed border-yellow-500 text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700"
             onClick={() => {
-              if (paymentData) {
-                simulateMutation.mutate({ donationId: paymentData.donationId });
-              }
+              simulatePayment({ donationId: paymentData.donationId });
             }}
-            disabled={simulateMutation.isPending}
+            disabled={isSimulating}
           >
-            {simulateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isSimulating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             DEV MODE: Simulate Success
           </Button>
         )}
@@ -193,8 +171,8 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-          {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button type="submit" className="w-full" disabled={isCreating}>
+          {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Donate Rp {form.watch("amount")?.toLocaleString() || "0"}
         </Button>
       </form>
