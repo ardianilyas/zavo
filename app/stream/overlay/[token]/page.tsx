@@ -1,8 +1,6 @@
-import { db } from "@/db";
-import { creator } from "@/db/schema";
-import { eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { OverlayClient } from "./overlay-client";
+import { CreatorService } from "@/features/creator/services/creator.service";
 
 interface PageProps {
   params: Promise<{
@@ -13,10 +11,8 @@ interface PageProps {
 export default async function OverlayPage({ params }: PageProps) {
   const { token } = await params;
 
-  // Find creator by streamToken only
-  const targetCreator = await db.query.creator.findFirst({
-    where: (creators, { eq }) => eq(creators.streamToken, token)
-  });
+  // Find creator by streamToken using Service
+  const targetCreator = await CreatorService.getProfileByStreamToken(token);
 
   if (!targetCreator) {
     return notFound();
