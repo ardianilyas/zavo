@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/db";
 import { donation, creator, paymentLog } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
 import { EventService } from "@/lib/events";
@@ -178,5 +178,44 @@ export const donationRouter = router({
       });
 
       return { success: true };
+    }),
+
+  getHistory: protectedProcedure
+    .input(
+      z.object({
+        creatorId: z.string(),
+        limit: z.number().min(1).max(100).default(15),
+        page: z.number().min(1).default(1),
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      // Verify ownership
+      const targetCreator = await db.query.creator.findFirst({
+        where: (c, { eq, and }) => and(eq(c.id, input.creatorId), eq(c.userId, ctx.session.user.id))
+      });
+      if (!targetCreator) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const offset = (input.page - 1) * input.limit;
+
+      const [donations, total] = await Promise.all([
+        db.query.donation.findMany({
+          where: eq(donation.recipientId, input.creatorId),
+          limit: input.limit,
+          offset: offset,
+          orderBy: (donations, { desc }) => [desc(donations.createdAt)],
+        }),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(donation)
+          .where(eq(donation.recipientId, input.creatorId))
+          .then((res) => Number(res[0]?.count || 0)),
+      ]);
+
+      return {
+        items: donations,
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / input.limit),
+      };
     }),
 });

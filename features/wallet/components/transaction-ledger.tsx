@@ -24,19 +24,17 @@ export function TransactionLedger({ creatorId }: { creatorId: string }) {
           <History className="h-5 w-5 text-primary" />
           Transaction History
         </CardTitle>
-        <button className="text-xs text-muted-foreground hover:text-primary transition-colors">
-          View All
-        </button>
+
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {!history?.length && (
+          {!history?.items.length && (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2">
               <History className="h-8 w-8 opacity-20" />
               <p className="text-xs">No transactions yet.</p>
             </div>
           )}
-          {history?.map((tx) => (
+          {history?.items.map((tx) => (
             <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
               <div className="flex items-center gap-3">
                 <div className={cn(
@@ -63,6 +61,6 @@ export function TransactionLedger({ creatorId }: { creatorId: string }) {
           ))}
         </div>
       </CardContent>
-    </Card>
+    </Card >
   );
 }

@@ -4,7 +4,7 @@ import { withdrawalRequest, creator, ledgerTransaction } from "@/db/schema";
 import { WalletService } from "@/features/wallet/services/wallet.service";
 import { createWithdrawalSchema } from "@/features/wallet/schema/wallet.schema";
 import { TRPCError } from "@trpc/server";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { db } from "@/db";
 import { XenditService } from "@/lib/xendit-service";
 
@@ -102,20 +102,46 @@ export const payoutRouter = router({
 
   // Get history for a specific creator
   getHistory: protectedProcedure
-    .input(z.object({ creatorId: z.string(), limit: z.number().optional() }))
-    .query(async ({ input, ctx }: { input: { creatorId: string, limit?: number }, ctx: any }) => {
+    .input(z.object({
+      creatorId: z.string(),
+      limit: z.number().optional(),
+      page: z.number().min(1).optional().default(1),
+      type: z.enum(["CREDIT", "DEBIT"]).optional(),
+      referenceType: z.enum(["DONATION", "WITHDRAWAL", "ADJUSTMENT"]).optional()
+    }))
+    .query(async ({ input, ctx }: { input: { creatorId: string, limit?: number, page: number, type?: "CREDIT" | "DEBIT", referenceType?: "DONATION" | "WITHDRAWAL" | "ADJUSTMENT" }, ctx: any }) => {
       // Verify ownership
       const targetCreator = await db.query.creator.findFirst({
         where: (c, { eq, and }) => and(eq(c.id, input.creatorId), eq(c.userId, ctx.session.user.id))
       });
       if (!targetCreator) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      const history = await db.query.ledgerTransaction.findMany({
-        where: eq(ledgerTransaction.creatorId, input.creatorId),
-        orderBy: [desc(ledgerTransaction.createdAt)],
-        limit: input.limit || 50
-      });
+      const limit = input.limit || 50;
+      const offset = (input.page - 1) * limit;
 
-      return history;
+      const filters = [eq(ledgerTransaction.creatorId, input.creatorId)];
+      if (input.type) filters.push(eq(ledgerTransaction.type, input.type));
+      if (input.referenceType) filters.push(eq(ledgerTransaction.referenceType, input.referenceType));
+
+      const [history, total] = await Promise.all([
+        db.query.ledgerTransaction.findMany({
+          where: (t, { and }) => and(...filters),
+          orderBy: [desc(ledgerTransaction.createdAt)],
+          limit: limit,
+          offset: offset,
+        }),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(ledgerTransaction)
+          .where(and(...filters))
+          .then((res) => Number(res[0]?.count || 0)),
+      ]);
+
+      return {
+        items: history,
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / limit),
+      };
     }),
 });
