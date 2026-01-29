@@ -21,7 +21,7 @@ export function StatsCard({ title, value, icon: Icon, description, trend }: Stat
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
+        <div className="text-2xl font-bold text-foreground" suppressHydrationWarning>{value}</div>
         {description && (
           <p className="text-xs text-muted-foreground mt-1">
             {description}
