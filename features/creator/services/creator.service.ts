@@ -1,7 +1,7 @@
 import { db } from "@/db";
-import { creator, donation } from "@/db/schema";
-import { eq, sum, count, and, gte, sql } from "drizzle-orm";
-import { subMonths, format, eachDayOfInterval } from "date-fns";
+import { creator, donation, ledgerTransaction } from "@/db/schema";
+import { eq, sum, count, and, gte, sql, lte } from "drizzle-orm";
+import { subMonths, format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
 
 export class CreatorService {
   static async getProfileByUserId(userId: string) {
@@ -38,7 +38,12 @@ export class CreatorService {
   }
 
   static async getStats(creatorId: string) {
-    // Calculate total donations and count
+    const today = new Date();
+    const startOfCurrentMonth = startOfMonth(today);
+    const startOfLastMonth = startOfMonth(subMonths(today, 1));
+    const endOfLastMonth = endOfMonth(subMonths(today, 1));
+
+    // 1. All-time Donation Stats
     const donationStats = await db
       .select({
         totalAmount: sum(donation.amount),
@@ -55,12 +60,79 @@ export class CreatorService {
     const totalDonations = donationStats[0]?.totalAmount ? Number(donationStats[0].totalAmount) : 0;
     const donationCount = donationStats[0]?.count ? Number(donationStats[0].count) : 0;
 
+    // 2. Current Month Donations
+    const currentMonthDonationsRes = await db
+      .select({ total: sum(donation.amount) })
+      .from(donation)
+      .where(
+        and(
+          eq(donation.recipientId, creatorId),
+          eq(donation.status, "PAID"),
+          gte(donation.createdAt, startOfCurrentMonth)
+        )
+      );
+    const currentMonthDonations = Number(currentMonthDonationsRes[0]?.total || 0);
+
+    // 3. Last Month Donations
+    const lastMonthDonationsRes = await db
+      .select({ total: sum(donation.amount) })
+      .from(donation)
+      .where(
+        and(
+          eq(donation.recipientId, creatorId),
+          eq(donation.status, "PAID"),
+          gte(donation.createdAt, startOfLastMonth),
+          lte(donation.createdAt, endOfLastMonth)
+        )
+      );
+    const lastMonthDonations = Number(lastMonthDonationsRes[0]?.total || 0);
+
+    // 4. Current Month Withdrawals (Ledger DEBIT + referenceType WITHDRAWAL)
+    // Note: Assuming 'WITHDRAWAL' is the correct referenceType based on schema
+    const currentMonthWithdrawalsRes = await db
+      .select({ total: sum(ledgerTransaction.amount) })
+      .from(ledgerTransaction)
+      .where(
+        and(
+          eq(ledgerTransaction.creatorId, creatorId),
+          eq(ledgerTransaction.type, "DEBIT"),
+          eq(ledgerTransaction.referenceType, "WITHDRAWAL"),
+          gte(ledgerTransaction.createdAt, startOfCurrentMonth)
+        )
+      );
+    const currentMonthWithdrawals = Number(currentMonthWithdrawalsRes[0]?.total || 0);
+
+    // 5. Last Month Withdrawals
+    const lastMonthWithdrawalsRes = await db
+      .select({ total: sum(ledgerTransaction.amount) })
+      .from(ledgerTransaction)
+      .where(
+        and(
+          eq(ledgerTransaction.creatorId, creatorId),
+          eq(ledgerTransaction.type, "DEBIT"),
+          eq(ledgerTransaction.referenceType, "WITHDRAWAL"),
+          gte(ledgerTransaction.createdAt, startOfLastMonth),
+          lte(ledgerTransaction.createdAt, endOfLastMonth)
+        )
+      );
+    const lastMonthWithdrawals = Number(lastMonthWithdrawalsRes[0]?.total || 0);
+
+    // Calculate Growth
+    const donationGrowth = lastMonthDonations === 0
+      ? (currentMonthDonations > 0 ? 100 : 0)
+      : ((currentMonthDonations - lastMonthDonations) / lastMonthDonations) * 100;
+
+    const withdrawalGrowth = lastMonthWithdrawals === 0
+      ? (currentMonthWithdrawals > 0 ? 100 : 0)
+      : ((currentMonthWithdrawals - lastMonthWithdrawals) / lastMonthWithdrawals) * 100;
+
     return {
       totalDonations,
       donationCount,
-      // Placeholder for other stats until schema supports them
-      activeMembers: 0,
-      newFollowers: 0
+      currentMonthDonations,
+      donationGrowth,
+      currentMonthWithdrawals,
+      withdrawalGrowth
     };
   }
 

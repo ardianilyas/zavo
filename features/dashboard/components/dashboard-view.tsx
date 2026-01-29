@@ -6,7 +6,8 @@ import {
   DollarSign,
   Sparkles,
   ArrowRight,
-  BarChart3
+  BarChart3,
+  Wallet
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,8 +25,10 @@ interface DashboardViewProps {
   stats?: {
     totalDonations: number;
     donationCount: number;
-    activeMembers: number;
-    newFollowers: number;
+    currentMonthDonations: number;
+    donationGrowth: number;
+    currentMonthWithdrawals: number;
+    withdrawalGrowth: number;
   } | null;
   chartData?: {
     date: string;
@@ -91,23 +94,29 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                   </WithdrawalDialog>
                 </CardContent>
               </Card>
+
               <StatsCard
-                title="Active Members"
-                value={stats?.activeMembers.toString() || "0"}
-                icon={Users}
-                description="+0 new this month"
+                title="Monthly Donations"
+                value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(stats?.currentMonthDonations || 0)}
+                icon={TrendingUp}
+                iconClassName="bg-green-500/10 text-green-500"
+                description={`${stats?.donationGrowth.toFixed(1)}% from last month`}
               />
+
               <StatsCard
-                title="Donations"
+                title="Total Donations"
                 value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(stats?.totalDonations || 0)}
                 icon={Heart}
-                description={`${stats?.donationCount || 0} tips received`}
+                iconClassName="bg-rose-500/10 text-rose-500"
+                description={`${stats?.donationCount || 0} tips all time`}
               />
+
               <StatsCard
-                title="New Followers"
-                value={stats?.newFollowers.toString() || "0"}
-                icon={TrendingUp}
-                description="+0% growth"
+                title="Monthly Withdrawals"
+                value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(stats?.currentMonthWithdrawals || 0)}
+                icon={Wallet}
+                iconClassName="bg-blue-500/10 text-blue-500"
+                description={`${stats?.withdrawalGrowth.toFixed(1)}% from last month`}
               />
             </div>
 
