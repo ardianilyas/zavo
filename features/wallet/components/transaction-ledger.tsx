@@ -28,7 +28,10 @@ export function TransactionLedger({ creatorId }: { creatorId: string }) {
       <CardContent>
         <div className="space-y-4">
           {!history?.length && (
-            <p className="text-sm text-center text-muted-foreground py-8">No transactions yet.</p>
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2">
+              <History className="h-8 w-8 opacity-20" />
+              <p className="text-xs">No transactions yet.</p>
+            </div>
           )}
           {history?.map((tx) => (
             <div key={tx.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border">
@@ -37,17 +40,17 @@ export function TransactionLedger({ creatorId }: { creatorId: string }) {
                   "p-2 rounded-full",
                   tx.type === "CREDIT" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"
                 )}>
-                  {tx.type === "CREDIT" ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownLeft className="h-4 w-4" />}
+                  {tx.type === "CREDIT" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownLeft className="h-3 w-3" />}
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{tx.description}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs font-medium">{tx.description}</p>
+                  <p className="text-[10px] text-muted-foreground">
                     {format(new Date(tx.createdAt), "MMM d, yyyy • HH:mm")}
                   </p>
                 </div>
               </div>
               <div className={cn(
-                "text-sm font-bold",
+                "text-xs font-bold",
                 tx.type === "CREDIT" ? "text-green-600" : "text-red-600"
               )}>
                 {tx.type === "CREDIT" ? "+" : "-"}

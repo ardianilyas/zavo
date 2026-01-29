@@ -1,10 +1,16 @@
 import { db } from "@/db";
-import { creator } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { creator, donation } from "@/db/schema";
+import { eq, sum, count, and } from "drizzle-orm";
 
 export class CreatorService {
   static async getProfileByUserId(userId: string) {
     return await db.query.creator.findFirst({
+      where: eq(creator.userId, userId)
+    });
+  }
+
+  static async getAllProfilesByUserId(userId: string) {
+    return await db.query.creator.findMany({
       where: eq(creator.userId, userId)
     });
   }
@@ -29,4 +35,32 @@ export class CreatorService {
       where: eq(creator.streamToken, token)
     });
   }
+
+  static async getStats(creatorId: string) {
+    // Calculate total donations and count
+    const donationStats = await db
+      .select({
+        totalAmount: sum(donation.amount),
+        count: count(donation.id),
+      })
+      .from(donation)
+      .where(
+        and(
+          eq(donation.recipientId, creatorId),
+          eq(donation.status, "PAID")
+        )
+      );
+
+    const totalDonations = donationStats[0]?.totalAmount ? Number(donationStats[0].totalAmount) : 0;
+    const donationCount = donationStats[0]?.count ? Number(donationStats[0].count) : 0;
+
+    return {
+      totalDonations,
+      donationCount,
+      // Placeholder for other stats until schema supports them
+      activeMembers: 0,
+      newFollowers: 0
+    };
+  }
 }
+

@@ -27,6 +27,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     creatorProfile = await CreatorService.getProfileByUserId(session.user.id);
   }
 
+  const stats = creatorProfile ? await CreatorService.getStats(creatorProfile.id) : null;
+
   // 2. Render View
-  return <DashboardView creatorProfile={creatorProfile} />;
+  return <DashboardView creatorProfile={creatorProfile} stats={stats} />;
 }

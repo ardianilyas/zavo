@@ -18,9 +18,15 @@ import { TransactionLedger } from "@/features/wallet/components/transaction-ledg
 
 interface DashboardViewProps {
   creatorProfile: any;
+  stats?: {
+    totalDonations: number;
+    donationCount: number;
+    activeMembers: number;
+    newFollowers: number;
+  } | null;
 }
 
-export function DashboardView({ creatorProfile }: DashboardViewProps) {
+export function DashboardView({ creatorProfile, stats }: DashboardViewProps) {
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
@@ -53,9 +59,9 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
             <TabsList className="bg-muted/50 p-1">
               <TabsTrigger value="overview" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Overview</TabsTrigger>
               <TabsTrigger value="stream" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Stream Setup</TabsTrigger>
-              <TabsTrigger value="donations" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Donations</TabsTrigger>
-              <TabsTrigger value="members" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Members</TabsTrigger>
-              <TabsTrigger value="shop" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Shop</TabsTrigger>
+              {/* <TabsTrigger value="donations" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Donations</TabsTrigger> */}
+              {/* <TabsTrigger value="members" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Members</TabsTrigger> */}
+              {/* <TabsTrigger value="shop" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Shop</TabsTrigger> */}
             </TabsList>
           </div>
 
@@ -80,21 +86,21 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
               </Card>
               <StatsCard
                 title="Active Members"
-                value="843"
+                value={stats?.activeMembers.toString() || "0"}
                 icon={Users}
-                description="+24 new this month"
+                description="+0 new this month"
               />
               <StatsCard
                 title="Donations"
-                value="$3,200.00"
+                value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(stats?.totalDonations || 0)}
                 icon={Heart}
-                description="156 tips received"
+                description={`${stats?.donationCount || 0} tips received`}
               />
               <StatsCard
                 title="New Followers"
-                value="+2,350"
+                value={stats?.newFollowers.toString() || "0"}
                 icon={TrendingUp}
-                description="+18% growth"
+                description="+0% growth"
               />
             </div>
 

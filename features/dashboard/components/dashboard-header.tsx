@@ -4,17 +4,25 @@ import Link from "next/link";
 import { DashboardNav } from "./dashboard-nav";
 import { UserNav } from "./user-nav";
 import { ThemeToggle } from "@/components/mode-toggle";
+import { CreatorSwitcher } from "./creator-switcher";
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  profiles: any[]; // Using any[] for now to match the implicit schema type, but strictly should be Creator[]
+}
+
+export function DashboardHeader({ profiles = [] }: DashboardHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-16 items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mr-8 hidden md:flex">
+        <div className="mr-8 hidden md:flex items-center">
           <Link href="/dashboard" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold text-xl sm:inline-block bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
+            <span className="hidden font-bold text-xl sm:inline-block text-primary">
               Zavo
             </span>
           </Link>
+
+          {profiles.length > 0 && <CreatorSwitcher items={profiles} className="mr-4" />}
+
           <DashboardNav />
         </div>
 
@@ -33,3 +41,4 @@ export function DashboardHeader() {
     </header>
   );
 }
+
