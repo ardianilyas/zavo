@@ -2,7 +2,7 @@ import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/db";
 import { donation, creator, paymentLog } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
 import { EventService } from "@/lib/events";
@@ -180,6 +180,47 @@ export const donationRouter = router({
       return { success: true };
     }),
 
+  replayAlert: protectedProcedure
+    .input(z.object({ donationId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // 1. Verify ownership and existence
+      const targetDonation = await db.query.donation.findFirst({
+        where: eq(donation.id, input.donationId),
+      });
+
+      if (!targetDonation) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Donation not found" });
+      }
+
+      // Fetch recipient manually
+      const recipient = await db.query.creator.findFirst({
+        where: eq(creator.id, targetDonation.recipientId)
+      });
+
+      if (!recipient) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Recipient not found" });
+      }
+
+      // 2. Check if the authenticated user owns this creator profile
+      if (recipient.userId !== ctx.session.user.id) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "You don't have permission to replay this alert" });
+      }
+
+      if (targetDonation.status !== "PAID") {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can only replay alerts for paid donations" });
+      }
+
+      // 3. Trigger Alert
+      await EventService.triggerDonation(recipient.username, {
+        donorName: targetDonation.donorName,
+        amount: targetDonation.amount,
+        message: targetDonation.message || "",
+        formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+      });
+
+      return { success: true };
+    }),
+
   getHistory: protectedProcedure
     .input(
       z.object({
@@ -199,7 +240,7 @@ export const donationRouter = router({
 
       const [donations, total] = await Promise.all([
         db.query.donation.findMany({
-          where: eq(donation.recipientId, input.creatorId),
+          where: (donation, { eq, and }) => and(eq(donation.recipientId, input.creatorId), eq(donation.status, "PAID")),
           limit: input.limit,
           offset: offset,
           orderBy: (donations, { desc }) => [desc(donations.createdAt)],
@@ -207,7 +248,7 @@ export const donationRouter = router({
         db
           .select({ count: sql<number>`count(*)` })
           .from(donation)
-          .where(eq(donation.recipientId, input.creatorId))
+          .where(and(eq(donation.recipientId, input.creatorId), eq(donation.status, "PAID")))
           .then((res) => Number(res[0]?.count || 0)),
       ]);
 
