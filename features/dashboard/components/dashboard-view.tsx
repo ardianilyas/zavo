@@ -1,23 +1,23 @@
-"use client";
-
 import { StatsCard } from "@/features/dashboard/components/stats-card";
 import {
   Users,
   TrendingUp,
   Heart,
   DollarSign,
-  Sparkles
+  Sparkles,
+  ArrowRight
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StreamKeyCard } from "@/features/dashboard/components/stream-key-card";
 import { TestOverlayCard } from "@/features/dashboard/components/test-overlay-card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { WithdrawalDialog } from "@/features/wallet/components/withdrawal-dialog";
+import { TransactionLedger } from "@/features/wallet/components/transaction-ledger";
 
 interface DashboardViewProps {
-  creatorProfile: any; // Type should be inferred from Schema or specialized type
+  creatorProfile: any;
 }
 
 export function DashboardView({ creatorProfile }: DashboardViewProps) {
@@ -30,7 +30,6 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
         </p>
       </div>
 
-      {/* FAN / NEW USER VIEW Check */}
       {!creatorProfile ? (
         <Card className="bg-primary/5 border-primary/20">
           <CardHeader>
@@ -49,7 +48,6 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
           </CardContent>
         </Card>
       ) : (
-        /* CREATOR VIEW */
         <Tabs defaultValue="overview" className="space-y-4">
           <div className="flex items-center justify-between">
             <TabsList className="bg-muted/50 p-1">
@@ -62,14 +60,24 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
           </div>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Row 1: Stats */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <StatsCard
-                title="Current Balance"
-                value={new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(creatorProfile.balance)}
-                icon={DollarSign}
-                description="Available for withdrawal"
-              />
+              <Card className="relative overflow-hidden group">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="text-2xl font-bold">
+                    {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(creatorProfile.balance)}
+                  </div>
+                  <WithdrawalDialog creatorId={creatorProfile.id} currentBalance={creatorProfile.balance}>
+                    <Button size="sm" className="w-full h-8 flex items-center gap-2 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border-none">
+                      Withdraw Funds
+                      <ArrowRight className="h-3 w-3" />
+                    </Button>
+                  </WithdrawalDialog>
+                </CardContent>
+              </Card>
               <StatsCard
                 title="Active Members"
                 value="843"
@@ -90,7 +98,6 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
               />
             </div>
 
-            {/* Row 2: Main Chart + Recent Activity */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
               <Card className="col-span-4 backdrop-blur-md bg-card/50 border-primary/10">
                 <CardHeader>
@@ -100,7 +107,6 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
-                  {/* Placeholder for Chart */}
                   <div className="h-[350px] flex items-center justify-center text-muted-foreground border border-dashed rounded-md bg-muted/20">
                     <div className="text-center">
                       <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-50" />
@@ -110,32 +116,9 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
                 </CardContent>
               </Card>
 
-              <Card className="col-span-3 backdrop-blur-md bg-card/50 border-primary/10">
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>
-                    Latest tips, subscriptions, and purchases.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-8">
-                    <div className="flex items-center">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src="/avatars/01.png" alt="Avatar" />
-                        <AvatarFallback>JD</AvatarFallback>
-                      </Avatar>
-                      <div className="ml-4 space-y-1">
-                        <p className="text-sm font-medium leading-none">John Doe</p>
-                        <p className="text-sm text-muted-foreground">
-                          Donated $50.00 • "Great stream!"
-                        </p>
-                      </div>
-                      <div className="ml-auto font-medium text-green-600">+$50.00</div>
-                    </div>
-                    {/* Simplified mock items from original */}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="col-span-3">
+                <TransactionLedger creatorId={creatorProfile.id} />
+              </div>
             </div>
           </TabsContent>
 
@@ -145,7 +128,6 @@ export function DashboardView({ creatorProfile }: DashboardViewProps) {
               <TestOverlayCard />
             </div>
           </TabsContent>
-
         </Tabs>
       )}
     </div>

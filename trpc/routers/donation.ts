@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { router, publicProcedure, protectedProcedure } from "../init";
 import { db } from "@/db";
-import { donation, user, transaction, creator } from "@/db/schema";
+import { donation, creator, paymentLog } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
@@ -84,7 +84,7 @@ export const donationRouter = router({
         })
         .returning();
 
-      await db.insert(transaction).values({
+      await db.insert(paymentLog).values({
         donationId: newDonation[0].id,
         type: "QR_CREATED",
         status: "PENDING",

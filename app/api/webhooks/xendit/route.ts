@@ -1,32 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { donation, transaction, user, creator } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { donation, creator, paymentLog } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { EventService } from "@/lib/events";
+import { WalletService } from "@/features/wallet/services/wallet.service";
 
 export async function POST(req: NextRequest) {
   try {
+    const callbackToken = req.headers.get("x-callback-token");
+    if (callbackToken !== process.env.XENDIT_WEBHOOK_TOKEN) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
     const event = await req.json();
-    // Sometimes Xendit uses 'event', sometimes 'webhook_type' depending on the callback
     const eventType = event.event || event.webhook_type;
     console.log(`Xendit Webhook [${eventType}] Received:`, JSON.stringify(event, null, 2));
 
-    // 1. Handle "payment_method.activated" (QR Created - Payment Request API)
     if (eventType === "payment_method.activated") {
       return NextResponse.json({ message: "Payment Method Activated", status: "ok" });
     }
 
     // 2. Handle "qr.payment" (Direct QR Code / Legacy Callback)
-    // Structure: { event: "qr.payment", data: { id: "...", qr_id: "...", reference_id: "...", status: "SUCCEEDED" } }
     if (eventType === "qr.payment") {
       const data = event.data || {};
       const status = data.status;
 
       if (status === "SUCCEEDED" || status === "PAID" || status === "COMPLETED") {
-        const qrId = data.qr_id; // Matches donation.xenditId
-        const referenceId = data.reference_id; // Matches donation.externalId
+        const qrId = data.qr_id;
+        const referenceId = data.reference_id;
 
-        // Try to find donation by xenditId (qr_id) first, then fallback to externalId (reference_id)
         const targetDonation = await db.query.donation.findFirst({
           where: (donations, { eq, or }) => or(
             qrId ? eq(donations.xenditId, qrId) : undefined,
@@ -39,27 +41,24 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ message: "Donation not found" }, { status: 404 });
         }
 
-        if (targetDonation.status === "PAID") {
-          return NextResponse.json({ message: "Already Paid" });
-        }
+        if (targetDonation.status === "PAID") return NextResponse.json({ message: "Already Paid" });
 
-        // ATOMIC BALANCE UPDATE
-        await db.update(creator)
-          .set({
-            balance: sql`${creator.balance} + ${targetDonation.amount}`
-          })
-          .where(eq(creator.id, targetDonation.recipientId));
+        // USE WALLET SERVICE (Atomic Update + Ledger)
+        await WalletService.processPaidDonation({
+          donationId: targetDonation.id,
+          recipientId: targetDonation.recipientId,
+          amount: targetDonation.amount,
+          webhookPayload: event
+        });
 
+        // Update Donation Status
         await db.update(donation)
           .set({ status: "PAID", paidAt: new Date() })
           .where(eq(donation.id, targetDonation.id));
 
-        // Fetch recipient to get username for channel
-        const recipient = await db.query.creator.findFirst({
-          where: eq(creator.id, targetDonation.recipientId)
-        });
-
-        if (recipient && recipient.username) {
+        // Notifications
+        const recipient = await db.query.creator.findFirst({ where: eq(creator.id, targetDonation.recipientId) });
+        if (recipient?.username) {
           await EventService.triggerDonation(recipient.username, {
             donorName: targetDonation.donorName,
             amount: targetDonation.amount,
@@ -68,15 +67,6 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        await db.insert(transaction).values({
-          donationId: targetDonation.id,
-          type: "WEBHOOK_PAID_QR",
-          status: "SUCCESS",
-          provider: "XENDIT",
-          payload: event,
-        });
-
-        console.log(`Donation ${targetDonation.id} marked as PAID (qr.payment)`);
         return NextResponse.json({ status: "success" });
       }
     }
@@ -85,14 +75,12 @@ export async function POST(req: NextRequest) {
     if (eventType === "payment.succeeded") {
       const paymentId = event.data?.id;
       const referenceId = event.data?.reference_id;
+      const paymentRequestId = event.data?.payment_request_id;
       const status = event.data?.status;
 
       if (status !== "SUCCEEDED" && status !== "PAID") {
         return NextResponse.json({ message: "Status not succeeded" }, { status: 400 });
       }
-
-      // Try matching by externalId (Payment Request ID)
-      const paymentRequestId = event.data?.payment_request_id;
 
       const targetDonation = await db.query.donation.findFirst({
         where: (donations, { eq, or }) => or(
@@ -102,33 +90,24 @@ export async function POST(req: NextRequest) {
         )
       });
 
-      if (!targetDonation) {
-        console.warn(`Donation not found for Payment: ${paymentId}, Ref: ${referenceId}, PR: ${paymentRequestId}`);
-        return NextResponse.json({ message: "Donation not found" }, { status: 404 });
-      }
+      if (!targetDonation) return NextResponse.json({ message: "Donation not found" }, { status: 404 });
+      if (targetDonation.status === "PAID") return NextResponse.json({ message: "Already Paid" });
 
-      if (targetDonation.status === "PAID") {
-        return NextResponse.json({ message: "Already Paid" });
-      }
+      // USE WALLET SERVICE
+      await WalletService.processPaidDonation({
+        donationId: targetDonation.id,
+        recipientId: targetDonation.recipientId,
+        amount: targetDonation.amount,
+        webhookPayload: event
+      });
 
-      // ATOMIC BALANCE UPDATE
-      await db.update(creator)
-        .set({
-          balance: sql`${creator.balance} + ${targetDonation.amount}`
-        })
-        .where(eq(creator.id, targetDonation.recipientId));
-
-      // Update to PAID
+      // Update Donation Status
       await db.update(donation)
         .set({ status: "PAID", paidAt: new Date() })
         .where(eq(donation.id, targetDonation.id));
 
-      // Fetch recipient for notifications (fix: logic was missing in original block, good practice to add)
-      const recipient = await db.query.creator.findFirst({
-        where: eq(creator.id, targetDonation.recipientId)
-      });
-
-      if (recipient && recipient.username) {
+      const recipient = await db.query.creator.findFirst({ where: eq(creator.id, targetDonation.recipientId) });
+      if (recipient?.username) {
         await EventService.triggerDonation(recipient.username, {
           donorName: targetDonation.donorName,
           amount: targetDonation.amount,
@@ -137,21 +116,12 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Log Transaction
-      await db.insert(transaction).values({
-        donationId: targetDonation.id,
-        type: "WEBHOOK_PAID",
-        status: "SUCCESS",
-        provider: "XENDIT",
-        payload: event,
-      });
-
-      console.log(`Donation ${targetDonation.id} marked as PAID (payment.succeeded)`);
-
       return NextResponse.json({ status: "success" });
     }
 
-    // Unknown event - acknowledge to stop retries
+
+
+
     return NextResponse.json({ message: "Event ignored" });
   } catch (error) {
     console.error("Webhook Handler Error:", error);

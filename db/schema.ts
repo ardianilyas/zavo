@@ -85,12 +85,42 @@ export const donation = pgTable("donation", {
   paidAt: timestamp("paid_at"),
 });
 
-export const transaction = pgTable("transaction", {
+// Logs for external payment provider raw events
+export const paymentLog = pgTable("payment_log", {
   id: uuid("id").primaryKey().defaultRandom(),
-  donationId: uuid("donation_id").references(() => donation.id).notNull(),
-  type: text("type").notNull(), // 'QR_CREATED', 'WEBHOOK_PAID', 'WEBHOOK_FAILED'
+  donationId: uuid("donation_id").references(() => donation.id),
+  type: text("type").notNull(), // 'QR_CREATED', 'WEBHOOK_PAID', etc.
   status: text("status").notNull(),
   provider: text("provider").default('XENDIT'),
-  payload: json("payload"), // Store full Xendit response/webhook
+  payload: json("payload"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// The Source of Truth for Balance
+export const ledgerTransaction = pgTable("ledger_transaction", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  creatorId: uuid("creator_id").references(() => creator.id).notNull(),
+  type: text("type", { enum: ["CREDIT", "DEBIT"] }).notNull(),
+  amount: integer("amount").notNull(),
+  description: text("description"),
+  referenceId: text("reference_id"), // ID from donation, withdrawal_request, etc.
+  referenceType: text("reference_type", { enum: ["DONATION", "WITHDRAWAL", "ADJUSTMENT"] }).notNull(),
+  status: text("status", { enum: ["PENDING", "COMPLETED", "FAILED", "CANCELLED"] }).default("COMPLETED").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const withdrawalRequest = pgTable("withdrawal_request", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  xenditId: text("xendit_id"), // Disbursement ID from Xendit
+  creatorId: uuid("creator_id").references(() => creator.id).notNull(),
+  amount: integer("amount").notNull(),
+  status: text("status", { enum: ["PENDING", "APPROVED", "REJECTED", "PROCESSING", "COMPLETED"] }).default("PENDING").notNull(),
+  bankCode: text("bank_code").notNull(),
+  accountNumber: text("account_number").notNull(),
+  accountName: text("account_name").notNull(),
+  notes: text("notes"),
+  adminNotes: text("admin_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+});
+

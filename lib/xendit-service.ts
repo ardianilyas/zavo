@@ -9,6 +9,26 @@ export interface CreateQRCodeParams {
   channelCode?: string;
 }
 
+export interface CreateDisbursementParams {
+  externalId: string;
+  amount: number;
+  bankCode: string;
+  accountHolderName: string;
+  accountNumber: string;
+  description: string;
+}
+
+export interface XenditDisbursementResponse {
+  id: string;
+  external_id: string;
+  user_id: string;
+  amount: number;
+  bank_code: string;
+  account_holder_name: string;
+  disbursement_description: string;
+  status: "PENDING" | "COMPLETED" | "FAILED";
+}
+
 export interface XenditQRCodeResponse {
   id: string;
   reference_id: string;
@@ -75,6 +95,31 @@ export class XenditService {
       const errorBody = await response.json();
       console.error("Xendit Simulate Error:", errorBody);
       throw new Error(errorBody.message || "Simulation Failed");
+    }
+
+    return await response.json();
+  }
+
+  static async createDisbursement(params: CreateDisbursementParams): Promise<XenditDisbursementResponse> {
+    const payload = {
+      external_id: params.externalId,
+      amount: params.amount,
+      bank_code: params.bankCode,
+      account_holder_name: params.accountHolderName,
+      account_number: params.accountNumber,
+      description: params.description,
+    };
+
+    const response = await fetch("https://api.xendit.co/disbursements", {
+      method: "POST",
+      headers: this.getHeaders(),
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json();
+      console.error("Xendit Disbursement Error:", errorBody);
+      throw new Error(errorBody.message || "Failed to create disbursement");
     }
 
     return await response.json();
