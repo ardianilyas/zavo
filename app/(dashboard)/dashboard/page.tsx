@@ -4,12 +4,28 @@ import { redirect } from "next/navigation";
 import { CreatorService } from "@/features/creator/services/creator.service";
 import { DashboardView } from "@/features/dashboard/components/dashboard-view";
 
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/");
 
-  // 1. Fetch using Service
-  const creatorProfile = await CreatorService.getProfileByUserId(session.user.id);
+  const params = await searchParams;
+  const profileId = typeof params.profileId === "string" ? params.profileId : null;
+
+  let creatorProfile = null;
+
+  if (profileId) {
+    // 1. Try to fetch specific profile requested
+    creatorProfile = await CreatorService.getProfileById(profileId, session.user.id);
+  }
+
+  if (!creatorProfile) {
+    // 2. Fallback to default (first) profile
+    creatorProfile = await CreatorService.getProfileByUserId(session.user.id);
+  }
 
   // 2. Render View
   return <DashboardView creatorProfile={creatorProfile} />;

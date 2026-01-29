@@ -9,6 +9,15 @@ export class CreatorService {
     });
   }
 
+  static async getProfileById(id: string, userId: string) {
+    return await db.query.creator.findFirst({
+      where: (creators, { eq, and }) => and(
+        eq(creators.id, id),
+        eq(creators.userId, userId)
+      )
+    });
+  }
+
   static async getProfileByUsername(username: string) {
     return await db.query.creator.findFirst({
       where: eq(creator.username, username)
