@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,20 +113,25 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Amount (IDR)</FormLabel>
-              <div className="grid grid-cols-3 gap-2 mb-2">
+              <FormLabel className="text-base font-semibold">Support Amount</FormLabel>
+              <div className="grid grid-cols-4 gap-3 mb-4">
                 {[10000, 20000, 50000, 100000].map((amt) => (
                   <Button
                     key={amt}
                     type="button"
                     variant={field.value === amt ? "default" : "outline"}
-                    size="sm"
+                    className={cn(
+                      "h-12 text-base font-medium transition-all duration-200",
+                      field.value === amt
+                        ? "bg-primary text-primary-foreground shadow-md scale-105"
+                        : "hover:bg-primary/5 hover:border-primary/50 text-muted-foreground"
+                    )}
                     onClick={() => field.onChange(amt)}
                   >
                     {amt / 1000}k
@@ -133,9 +139,16 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
                 ))}
               </div>
               <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">Rp</span>
-                  <Input type="number" {...field} className="pl-9" />
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold group-focus-within:text-primary transition-colors">
+                    Rp
+                  </div>
+                  <Input
+                    type="number"
+                    {...field}
+                    className="h-14 pl-12 text-xl font-bold bg-background/50 border-muted focus:border-primary transition-all rounded-xl"
+                    placeholder="0"
+                  />
                 </div>
               </FormControl>
               <FormMessage />
@@ -143,38 +156,64 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="donorName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Your Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-1 gap-6">
+          <FormField
+            control={form.control}
+            name="donorName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium text-muted-foreground uppercase text-[10px] tracking-wider">Your Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="John Doe"
+                    {...field}
+                    className="h-12 bg-background/50 border-muted rounded-xl focus:ring-1 focus:ring-primary/20 transition-all"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="message"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Message (Optional)</FormLabel>
-              <FormControl>
-                <Textarea placeholder="Great content!" className="resize-none" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="message"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="font-medium text-muted-foreground uppercase text-[10px] tracking-wider">Support Message (Optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Keep up the great work! ✨"
+                    className="resize-none h-28 bg-background/50 border-muted rounded-xl focus:ring-1 focus:ring-primary/20 transition-all p-4"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <Button type="submit" className="w-full" disabled={isCreating}>
-          {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Donate Rp {form.watch("amount")?.toLocaleString() || "0"}
+        <Button
+          type="submit"
+          className="w-full h-14 text-lg font-bold rounded-xl shadow-[0_4px_14px_0_rgba(76,175,80,0.39)] hover:shadow-[0_6px_20px_rgba(76,175,80,0.23)] hover:bg-[#43a047] transition-all transform hover:-translate-y-0.5"
+          disabled={isCreating}
+        >
+          {isCreating ? (
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+          ) : (
+            <span className="flex items-center">
+              Send Support
+              <span className="ml-2 bg-white/20 px-2 py-0.5 rounded text-sm font-medium">
+                Rp {form.watch("amount")?.toLocaleString() || "0"}
+              </span>
+            </span>
+          )}
         </Button>
+
+        <p className="text-center text-[10px] text-muted-foreground">
+          By donating, you agree to the Terms of Service. All tips are final and non-refundable.
+        </p>
       </form>
     </Form>
   );
