@@ -1,6 +1,6 @@
 "use client";
 
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useState, useEffect } from "react";
 import { api as trpc } from "@/trpc/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +27,10 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
   const [copied, setCopied] = useState(false);
   const [key, setKey] = useState(streamToken || "");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    setKey(streamToken || "");
+  }, [streamToken]);
 
   const regenerateMutation = trpc.user.regenerateStreamToken.useMutation({
     onSuccess: (data: { streamToken: SetStateAction<string>; }) => {

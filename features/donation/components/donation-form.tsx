@@ -35,7 +35,7 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
   const { data: session } = authClient.useSession();
 
   const form = useForm<DonationInput>({
-    resolver: zodResolver(donationSchema),
+    resolver: zodResolver(donationSchema) as any,
     defaultValues: {
       amount: 10000,
       donorName: "",

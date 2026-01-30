@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../init";
+import { router, protectedProcedure } from "@/trpc/init";
 import { withdrawalRequest, creator, ledgerTransaction } from "@/db/schema";
 import { WalletService } from "@/features/wallet/services/wallet.service";
 import { createWithdrawalSchema } from "@/features/wallet/schema/wallet.schema";

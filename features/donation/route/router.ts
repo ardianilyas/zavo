@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { router, publicProcedure, protectedProcedure } from "../init";
+import { router, publicProcedure, protectedProcedure } from "@/trpc/init";
 import { db } from "@/db";
 import { donation, creator, paymentLog } from "@/db/schema";
 import { eq, sql, and } from "drizzle-orm";

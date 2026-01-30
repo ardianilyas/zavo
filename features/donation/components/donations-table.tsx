@@ -6,10 +6,6 @@ import { useDonationHistory, useReplayAlert } from "../hooks/use-donation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronLeft, ChevronRight, Heart, RotateCcw } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-
-import { Badge } from "@/components/ui/badge";
 
 interface DonationsTableProps {
   creatorId: string;
