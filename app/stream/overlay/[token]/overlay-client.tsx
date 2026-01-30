@@ -7,14 +7,18 @@ interface OverlayClientProps {
   channelName: string;
   cluster: string;
   appKey: string;
+  settings: {
+    isTtsEnabled: boolean;
+    ttsMinAmount: number;
+  };
 }
 
-export function OverlayClient({ channelName, cluster, appKey }: OverlayClientProps) {
+export function OverlayClient({ channelName, cluster, appKey, settings }: OverlayClientProps) {
   const { currentAlert } = useStreamOverlay({
     channelName,
     cluster,
     appKey
   });
 
-  return <OverlayView currentAlert={currentAlert} />;
+  return <OverlayView currentAlert={currentAlert} settings={settings} />;
 }

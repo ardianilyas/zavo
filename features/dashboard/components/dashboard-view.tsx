@@ -19,6 +19,7 @@ import { WithdrawalDialog } from "@/features/wallet/components/withdrawal-dialog
 import { TransactionLedger } from "@/features/wallet/components/transaction-ledger";
 
 import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
+import { AlertSettingsCard } from "@/features/dashboard/components/alert-settings-card";
 
 interface DashboardViewProps {
   creatorProfile: any;
@@ -146,7 +147,16 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
           <TabsContent value="stream" className="space-y-6">
             <div className="grid gap-4 grid-cols-1">
               <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
-              <TestOverlayCard creatorId={creatorProfile.id} />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <AlertSettingsCard
+                  creatorId={creatorProfile.id}
+                  initialSettings={{
+                    isTtsEnabled: creatorProfile.isTtsEnabled ?? false,
+                    ttsMinAmount: creatorProfile.ttsMinAmount ?? 10000
+                  }}
+                />
+                <TestOverlayCard creatorId={creatorProfile.id} />
+              </div>
             </div>
           </TabsContent>
         </Tabs>

@@ -25,6 +25,8 @@ export const creator = pgTable("creator", {
   coverImage: text("cover_image"),
   streamToken: text("stream_token").unique(),
   balance: integer("balance").default(0).notNull(),
+  isTtsEnabled: boolean("is_tts_enabled").default(false).notNull(),
+  ttsMinAmount: integer("tts_min_amount").default(10000).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

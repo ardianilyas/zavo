@@ -58,4 +58,38 @@ export const creatorRouter = router({
 
       return newProfile;
     }),
+
+  updateSettings: protectedProcedure
+    .input(
+      z.object({
+        creatorId: z.string().uuid(),
+        isTtsEnabled: z.boolean().optional(),
+        ttsMinAmount: z.number().min(0).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      // 1. Verify ownership
+      const existingCreator = await db.query.creator.findFirst({
+        where: eq(creator.id, input.creatorId),
+      });
+
+      if (!existingCreator || existingCreator.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not own this profile.",
+        });
+      }
+
+      // 2. Update
+      const [updatedCreator] = await db
+        .update(creator)
+        .set({
+          isTtsEnabled: input.isTtsEnabled,
+          ttsMinAmount: input.ttsMinAmount,
+        })
+        .where(eq(creator.id, input.creatorId))
+        .returning();
+
+      return updatedCreator;
+    }),
 });

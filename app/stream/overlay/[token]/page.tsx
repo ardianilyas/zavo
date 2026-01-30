@@ -30,6 +30,10 @@ export default async function OverlayPage({ params }: PageProps) {
       channelName={channelName}
       appKey={appKey}
       cluster={cluster}
+      settings={{
+        isTtsEnabled: targetCreator.isTtsEnabled ?? false,
+        ttsMinAmount: targetCreator.ttsMinAmount ?? 10000,
+      }}
     />
   );
 }
