@@ -111,125 +111,132 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
   };
 
   return (
-    <Card className="shadow-none border-border/60">
+    <Card className="shadow-sm border-border">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Volume2 className="h-5 w-5 text-indigo-500" />
-          <CardTitle className="text-lg">Alert Settings</CardTitle>
+          <Megaphone className="h-5 w-5 text-indigo-500" />
+          <CardTitle className="text-lg">Alert Configuration</CardTitle>
         </div>
         <CardDescription>
-          Configure how donation alerts behave on your stream.
+          Customize how your donation alerts appear and sound.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Enable TTS Switch */}
-        <div className="flex items-center justify-between space-x-2">
-          <div className="flex flex-col space-y-1">
-            <Label htmlFor="tts-mode" className="font-medium">Text-to-Speech (TTS)</Label>
-            <span className="text-sm text-muted-foreground">
-              Read out the donor's message automatically.
-            </span>
+
+        {/* TTS Section */}
+        <div className="rounded-xl border bg-muted/30 p-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                <Volume2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="flex flex-col space-y-0.5">
+                <Label htmlFor="tts-mode" className="text-base font-semibold">Text-to-Speech</Label>
+                <span className="text-sm text-muted-foreground">
+                  Read donor messages out loud
+                </span>
+              </div>
+            </div>
+            <Switch
+              id="tts-mode"
+              checked={isTtsEnabled}
+              onCheckedChange={handleToggle}
+              disabled={updateSettings.isPending}
+            />
           </div>
-          <Switch
-            id="tts-mode"
-            checked={isTtsEnabled}
-            onCheckedChange={handleToggle}
-            disabled={updateSettings.isPending}
-          />
+
+          {isTtsEnabled && (
+            <div className="mt-4 pl-[52px] animate-in slide-in-from-top-2 fade-in duration-300">
+              <div className="flex flex-col gap-2 max-w-sm">
+                <Label htmlFor="min-amount" className="text-sm text-muted-foreground">
+                  Min. Amount (IDR)
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="min-amount"
+                    type="number"
+                    value={amountDraft}
+                    onChange={(e) => setAmountDraft(e.target.value)}
+                    onBlur={saveAmount}
+                    onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                    className="h-9"
+                    disabled={updateSettings.isPending}
+                  />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={saveAmount}
+                    disabled={parseInt(amountDraft) === ttsMinAmount || updateSettings.isPending}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Min Amount Input - Only show if TTS is enabled */}
-        {isTtsEnabled && (
-          <div className="flex flex-col space-y-2 pt-2 animate-in slide-in-from-top-2 fade-in duration-300">
-            <Label htmlFor="min-amount" className="text-sm font-medium">
-              Minimum Amount for TTS (IDR)
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                id="min-amount"
-                type="number"
-                value={amountDraft}
-                onChange={(e) => setAmountDraft(e.target.value)}
-                onBlur={saveAmount}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.currentTarget.blur();
-                  }
-                }}
-                className="max-w-[180px]"
-                disabled={updateSettings.isPending}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={saveAmount}
-                disabled={parseInt(amountDraft) === ttsMinAmount || updateSettings.isPending}
-              >
-                Save
-              </Button>
+        {/* Media Share Section */}
+        <div className="rounded-xl border bg-muted/30 p-4 transition-all hover:border-pink-200 dark:hover:border-pink-900/50">
+          <div className="flex items-center justify-between space-x-2">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                <Youtube className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+              </div>
+              <div className="flex flex-col space-y-0.5">
+                <Label htmlFor="media-share-mode" className="text-base font-semibold">Media Share</Label>
+                <span className="text-sm text-muted-foreground">
+                  Let viewers request YouTube videos
+                </span>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Donations below this amount will still appear but won't be read out loud.
-            </p>
+            <Switch
+              id="media-share-mode"
+              checked={isMediaShareEnabled}
+              onCheckedChange={handleMediaShareToggle}
+              disabled={updateSettings.isPending}
+            />
           </div>
-        )}
 
-        <div className="h-px bg-border" />
+          {isMediaShareEnabled && (
+            <div className="mt-6 border-t pt-4 animate-in slide-in-from-top-2 fade-in duration-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-2">
+                  <Label htmlFor="cost-per-second" className="text-sm font-medium">
+                    Cost per Second (IDR)
+                  </Label>
+                  <Input
+                    id="cost-per-second"
+                    type="number"
+                    min={1000}
+                    value={costPerSecondDraft}
+                    onChange={(e) => setCostPerSecondDraft(e.target.value)}
+                    onBlur={saveMediaShareSettings}
+                    disabled={updateSettings.isPending}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Min. Rp 1.000</p>
+                </div>
 
-        {/* Media Share Switch */}
-        <div className="flex items-center justify-between space-x-2">
-          <div className="flex flex-col space-y-1">
-            <Label htmlFor="media-share-mode" className="font-medium">Media Share</Label>
-            <span className="text-sm text-muted-foreground">
-              Allow viewers to play YouTube videos on stream.
-            </span>
-          </div>
-          <Switch
-            id="media-share-mode"
-            checked={isMediaShareEnabled}
-            onCheckedChange={handleMediaShareToggle}
-            disabled={updateSettings.isPending}
-          />
+                <div className="flex flex-col space-y-2">
+                  <Label htmlFor="max-duration" className="text-sm font-medium">
+                    Max Duration (Seconds)
+                  </Label>
+                  <Input
+                    id="max-duration"
+                    type="number"
+                    max={180}
+                    value={maxDurationDraft}
+                    onChange={(e) => setMaxDurationDraft(e.target.value)}
+                    onBlur={saveMediaShareSettings}
+                    disabled={updateSettings.isPending}
+                  />
+                  <p className="text-[10px] text-muted-foreground">Max. 180s</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Media Share Settings */}
-        {isMediaShareEnabled && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 animate-in slide-in-from-top-2 fade-in duration-300">
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="cost-per-second" className="text-sm font-medium">
-                Cost per Second (IDR)
-              </Label>
-              <Input
-                id="cost-per-second"
-                type="number"
-                min={1000}
-                value={costPerSecondDraft}
-                onChange={(e) => setCostPerSecondDraft(e.target.value)}
-                onBlur={saveMediaShareSettings}
-                className="max-w-[180px]"
-                disabled={updateSettings.isPending}
-              />
-              <p className="text-xs text-muted-foreground">Min. Rp 1.000</p>
-            </div>
-
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="max-duration" className="text-sm font-medium">
-                Max Duration (Seconds)
-              </Label>
-              <Input
-                id="max-duration"
-                type="number"
-                max={180}
-                value={maxDurationDraft}
-                onChange={(e) => setMaxDurationDraft(e.target.value)}
-                onBlur={saveMediaShareSettings}
-                className="max-w-[180px]"
-                disabled={updateSettings.isPending}
-              />
-              <p className="text-xs text-muted-foreground">Max. 180 seconds</p>
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

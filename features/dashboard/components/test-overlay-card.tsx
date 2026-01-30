@@ -29,27 +29,27 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
           Send a dummy donation alert to your overlay to verify the design and sound.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-3">
         <Button
           onClick={() => mutate({ creatorId })}
           disabled={isPending}
-          className="w-full sm:w-auto"
+          className="w-full justify-start"
         >
           {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <BellRing className="mr-2 h-4 w-4" />
           )}
-          Send Test Alert
+          Send Standard Test Alert
         </Button>
         <Button
           onClick={handleSpam}
           disabled={isPending}
           variant="secondary"
-          className="w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2"
+          className="w-full justify-start"
         >
           <Layers className="mr-2 h-4 w-4" />
-          Test Queue (x3)
+          Test Queue (Send 3x)
         </Button>
         <Button
           onClick={() => mutate({
@@ -59,7 +59,7 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
           })}
           disabled={isPending}
           variant="outline"
-          className="w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2 border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/10"
+          className="w-full justify-start border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/10"
         >
           <Youtube className="mr-2 h-4 w-4 text-red-500" />
           Test Media Share

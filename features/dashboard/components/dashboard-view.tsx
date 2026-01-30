@@ -145,9 +145,9 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
           </TabsContent>
 
           <TabsContent value="stream" className="space-y-6">
-            <div className="grid gap-4 grid-cols-1">
-              <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-6">
+                <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
                 <AlertSettingsCard
                   creatorId={creatorProfile.id}
                   initialSettings={{
@@ -158,6 +158,9 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                     mediaShareMaxDuration: creatorProfile.mediaShareMaxDuration ?? 180,
                   }}
                 />
+              </div>
+
+              <div className="lg:col-span-1 space-y-6">
                 <TestOverlayCard creatorId={creatorProfile.id} />
               </div>
             </div>
