@@ -146,7 +146,7 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
           <TabsContent value="stream" className="space-y-6">
             <div className="grid gap-4 grid-cols-1">
               <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
-              <TestOverlayCard />
+              <TestOverlayCard creatorId={creatorProfile.id} />
             </div>
           </TabsContent>
         </Tabs>

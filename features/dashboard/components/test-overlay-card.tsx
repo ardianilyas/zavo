@@ -6,7 +6,7 @@ import { api } from "@/trpc/client";
 import { toast } from "sonner";
 import { BellRing, Loader2, Layers } from "lucide-react";
 
-export function TestOverlayCard() {
+export function TestOverlayCard({ creatorId }: { creatorId: string }) {
   const { mutate, isPending } = api.donation.sendTestAlert.useMutation({
     onSuccess: () => {
       toast.success("Test alert sent!", {
@@ -25,7 +25,7 @@ export function TestOverlayCard() {
     // Trigger 3 times
     let count = 0;
     const interval = setInterval(() => {
-      mutate();
+      mutate({ creatorId });
       count++;
       if (count >= 3) clearInterval(interval);
     }, 200);
@@ -41,7 +41,7 @@ export function TestOverlayCard() {
       </CardHeader>
       <CardContent>
         <Button
-          onClick={() => mutate()}
+          onClick={() => mutate({ creatorId })}
           disabled={isPending}
           className="w-full sm:w-auto"
         >

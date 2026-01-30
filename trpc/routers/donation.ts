@@ -158,16 +158,17 @@ export const donationRouter = router({
     }),
 
   sendTestAlert: protectedProcedure
-    .mutation(async ({ ctx }) => {
+    .input(z.object({ creatorId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
-      // Find Creator Profile for this User
+      // Find Creator Profile for this User matching the requested ID
       const creatorProfile = await db.query.creator.findFirst({
-        where: eq(creator.userId, user.id)
+        where: (c, { eq, and }) => and(eq(c.id, input.creatorId), eq(c.userId, user.id))
       });
 
       if (!creatorProfile || !creatorProfile.username) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "User has no creator profile" });
+        throw new TRPCError({ code: "NOT_FOUND", message: "Creator profile not found or unauthorized" });
       }
 
       await EventService.triggerDonation(creatorProfile.username, {
