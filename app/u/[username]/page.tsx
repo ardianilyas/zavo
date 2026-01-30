@@ -37,7 +37,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
       <div className="w-full max-w-2xl px-4 -mt-24 sm:-mt-32 relative z-10 flex flex-col items-center">
         {/* Profile Avatar Card */}
         <div className="group relative">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200" />
+          <div className="absolute -inset-0.5 rounded-full opacity-75 blur transition duration-1000 group-hover:opacity-100 group-hover:duration-200" />
           <Avatar className="h-32 w-32 sm:h-40 sm:w-40 border-[6px] border-background shadow-xl relative">
             <AvatarImage src={creatorProfile.image || ""} alt={creatorProfile.name} className="object-cover" />
             <AvatarFallback className="text-4xl bg-gradient-to-br from-indigo-100 to-purple-100 text-purple-600 font-bold">
@@ -51,7 +51,7 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
 
         <div className="flex flex-col items-center text-center space-y-4 mt-6 mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
           <div className="space-y-2">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400">
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-foreground">
               {creatorProfile.name}
             </h1>
             <div className="flex items-center justify-center gap-2">
@@ -86,6 +86,11 @@ export default async function PublicProfilePage({ params }: PublicProfilePagePro
               <DonationForm
                 recipientUsername={creatorProfile.username || ""}
                 recipientName={creatorProfile.name}
+                mediaSettings={{
+                  isEnabled: creatorProfile.isMediaShareEnabled ?? false,
+                  costPerSecond: creatorProfile.mediaShareCostPerSecond ?? 1000,
+                  maxDuration: creatorProfile.mediaShareMaxDuration ?? 180,
+                }}
               />
             </div>
           </CardContent>

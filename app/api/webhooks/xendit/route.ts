@@ -63,7 +63,9 @@ export async function POST(req: NextRequest) {
             donorName: targetDonation.donorName,
             amount: targetDonation.amount,
             message: targetDonation.message || "",
-            formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+            formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`,
+            mediaUrl: targetDonation.mediaUrl || undefined,
+            mediaDuration: targetDonation.mediaDuration || undefined
           });
         }
 
@@ -112,7 +114,9 @@ export async function POST(req: NextRequest) {
           donorName: targetDonation.donorName,
           amount: targetDonation.amount,
           message: targetDonation.message || "",
-          formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+          formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`,
+          mediaUrl: targetDonation.mediaUrl || undefined,
+          mediaDuration: targetDonation.mediaDuration || undefined
         });
       }
 

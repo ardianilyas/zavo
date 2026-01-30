@@ -14,6 +14,9 @@ interface AlertSettingsCardProps {
   initialSettings: {
     isTtsEnabled: boolean;
     ttsMinAmount: number;
+    isMediaShareEnabled: boolean;
+    mediaShareCostPerSecond: number;
+    mediaShareMaxDuration: number;
   };
 }
 
@@ -22,6 +25,15 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
   const [ttsMinAmount, setTtsMinAmount] = useState(initialSettings.ttsMinAmount);
   // Separate state for draft amount to handle generic input behavior correctly
   const [amountDraft, setAmountDraft] = useState(initialSettings.ttsMinAmount.toString());
+
+  // Media Share State
+  const [isMediaShareEnabled, setIsMediaShareEnabled] = useState(initialSettings.isMediaShareEnabled);
+  const [mediaShareCostPerSecond, setMediaShareCostPerSecond] = useState(initialSettings.mediaShareCostPerSecond);
+  const [mediaShareMaxDuration, setMediaShareMaxDuration] = useState(initialSettings.mediaShareMaxDuration);
+
+  const [costPerSecondDraft, setCostPerSecondDraft] = useState(initialSettings.mediaShareCostPerSecond.toString());
+  const [maxDurationDraft, setMaxDurationDraft] = useState(initialSettings.mediaShareMaxDuration.toString());
+
 
   // Mutation
   const updateSettings = useUpdateAlertSettings({
@@ -53,12 +65,49 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
   };
 
   const handleToggle = (checked: boolean) => {
-    setIsTtsEnabled(checked);
     updateSettings.mutate({
       creatorId,
       isTtsEnabled: checked,
     });
     toast.success(checked ? "Text-to-Speech enabled" : "Text-to-Speech disabled");
+  };
+
+  const handleMediaShareToggle = (checked: boolean) => {
+    setIsMediaShareEnabled(checked);
+    updateSettings.mutate({
+      creatorId,
+      isMediaShareEnabled: checked,
+    });
+    toast.success(checked ? "Media Share enabled" : "Media Share disabled");
+  };
+
+  const saveMediaShareSettings = () => {
+    const cost = parseInt(costPerSecondDraft);
+    const duration = parseInt(maxDurationDraft);
+
+    if (isNaN(cost) || cost < 1000) {
+      toast.error("Min cost is Rp 1.000");
+      setCostPerSecondDraft(mediaShareCostPerSecond.toString());
+      return;
+    }
+
+    if (isNaN(duration) || duration > 180) {
+      toast.error("Max duration is 180s");
+      setMaxDurationDraft(mediaShareMaxDuration.toString());
+      return;
+    }
+
+    if (cost === mediaShareCostPerSecond && duration === mediaShareMaxDuration) return;
+
+    setMediaShareCostPerSecond(cost);
+    setMediaShareMaxDuration(duration);
+
+    updateSettings.mutate({
+      creatorId,
+      mediaShareCostPerSecond: cost,
+      mediaShareMaxDuration: duration,
+    });
+    toast.success("Media Share settings updated");
   };
 
   return (
@@ -124,6 +173,63 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
             </p>
           </div>
         )}
+
+        <div className="h-px bg-border" />
+
+        {/* Media Share Switch */}
+        <div className="flex items-center justify-between space-x-2">
+          <div className="flex flex-col space-y-1">
+            <Label htmlFor="media-share-mode" className="font-medium">Media Share</Label>
+            <span className="text-sm text-muted-foreground">
+              Allow viewers to play YouTube videos on stream.
+            </span>
+          </div>
+          <Switch
+            id="media-share-mode"
+            checked={isMediaShareEnabled}
+            onCheckedChange={handleMediaShareToggle}
+            disabled={updateSettings.isPending}
+          />
+        </div>
+
+        {/* Media Share Settings */}
+        {isMediaShareEnabled && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 animate-in slide-in-from-top-2 fade-in duration-300">
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="cost-per-second" className="text-sm font-medium">
+                Cost per Second (IDR)
+              </Label>
+              <Input
+                id="cost-per-second"
+                type="number"
+                min={1000}
+                value={costPerSecondDraft}
+                onChange={(e) => setCostPerSecondDraft(e.target.value)}
+                onBlur={saveMediaShareSettings}
+                className="max-w-[180px]"
+                disabled={updateSettings.isPending}
+              />
+              <p className="text-xs text-muted-foreground">Min. Rp 1.000</p>
+            </div>
+
+            <div className="flex flex-col space-y-2">
+              <Label htmlFor="max-duration" className="text-sm font-medium">
+                Max Duration (Seconds)
+              </Label>
+              <Input
+                id="max-duration"
+                type="number"
+                max={180}
+                value={maxDurationDraft}
+                onChange={(e) => setMaxDurationDraft(e.target.value)}
+                onBlur={saveMediaShareSettings}
+                className="max-w-[180px]"
+                disabled={updateSettings.isPending}
+              />
+              <p className="text-xs text-muted-foreground">Max. 180 seconds</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -131,3 +237,4 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
 
 // Importing toast here to avoid scope issues in case not auto-imported
 import { toast } from "sonner";
+import { Youtube } from "lucide-react";

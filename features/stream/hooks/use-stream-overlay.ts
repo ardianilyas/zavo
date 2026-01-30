@@ -52,10 +52,13 @@ export const useStreamOverlay = ({ channelName, cluster, appKey }: UseStreamOver
 
         setIsProcessing(false);
 
-        // Show for 10 seconds then clear
+        // Determine duration: Default 10s, or Media Duration (in ms) + 2s buffer
+        const duration = next.mediaDuration ? (next.mediaDuration * 1000) + 2000 : 10000;
+
+        // Show for calculated duration then clear
         setTimeout(() => {
           setCurrentAlert(null);
-        }, 10000);
+        }, duration);
       }, 1000);
     }
   }, [queue, currentAlert, isProcessing]);

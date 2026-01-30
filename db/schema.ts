@@ -27,12 +27,14 @@ export const creator = pgTable("creator", {
   balance: integer("balance").default(0).notNull(),
   isTtsEnabled: boolean("is_tts_enabled").default(false).notNull(),
   ttsMinAmount: integer("tts_min_amount").default(10000).notNull(),
+  isMediaShareEnabled: boolean("is_media_share_enabled").default(false).notNull(),
+  mediaShareCostPerSecond: integer("media_share_cost_per_second").default(1000).notNull(),
+  mediaShareMaxDuration: integer("media_share_max_duration").default(180).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// ... session, account, verification tables ... can remain unchanged in replacement if I target correctly or just overwrite if small enough.
-// Actually, to overlap correctly, I will target the imports and the bottom of the file.
+// ... session, account, verification tables ...
 
 export const session = pgTable("session", {
   id: text("id").primaryKey(),
@@ -78,6 +80,8 @@ export const donation = pgTable("donation", {
   donorEmail: text("donor_email"),
   amount: integer("amount").notNull(),
   message: text("message"),
+  mediaUrl: text("media_url"),
+  mediaDuration: integer("media_duration"),
   status: text("status", { enum: ["PENDING", "PAID", "FAILED", "EXPIRED"] }).default("PENDING").notNull(),
   externalId: text("external_id"), // Our Reference ID (e.g. zavo-...)
   xenditId: text("xendit_id"), // Xendit's QR ID (e.g. qr_...)

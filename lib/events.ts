@@ -24,6 +24,8 @@ export interface DonationEventData {
   amount: number;
   message: string;
   formattedAmount: string; // e.g., "Rp 50.000"
+  mediaUrl?: string;
+  mediaDuration?: number;
 }
 
 export class EventService {

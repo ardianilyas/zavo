@@ -65,6 +65,9 @@ export const creatorRouter = router({
         creatorId: z.string().uuid(),
         isTtsEnabled: z.boolean().optional(),
         ttsMinAmount: z.number().min(0).optional(),
+        isMediaShareEnabled: z.boolean().optional(),
+        mediaShareCostPerSecond: z.number().min(1000).optional(),
+        mediaShareMaxDuration: z.number().max(180).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -86,6 +89,9 @@ export const creatorRouter = router({
         .set({
           isTtsEnabled: input.isTtsEnabled,
           ttsMinAmount: input.ttsMinAmount,
+          isMediaShareEnabled: input.isMediaShareEnabled,
+          mediaShareCostPerSecond: input.mediaShareCostPerSecond,
+          mediaShareMaxDuration: input.mediaShareMaxDuration,
         })
         .where(eq(creator.id, input.creatorId))
         .returning();

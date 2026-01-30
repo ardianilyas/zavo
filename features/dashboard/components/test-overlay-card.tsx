@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { BellRing, Loader2, Layers } from "lucide-react";
+import { BellRing, Loader2, Layers, Youtube } from "lucide-react";
 import { useSendTestAlert } from "../hooks/use-send-test-alert";
 
 export function TestOverlayCard({ creatorId }: { creatorId: string }) {
@@ -50,6 +50,19 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
         >
           <Layers className="mr-2 h-4 w-4" />
           Test Queue (x3)
+        </Button>
+        <Button
+          onClick={() => mutate({
+            creatorId,
+            mediaUrl: "https://www.youtube.com/watch?v=HfWLgELllZs&list=RDHfWLgELllZs&start_radio=1",
+            mediaDuration: 15
+          })}
+          disabled={isPending}
+          variant="outline"
+          className="w-full sm:w-auto mt-2 sm:mt-0 sm:ml-2 border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/10"
+        >
+          <Youtube className="mr-2 h-4 w-4 text-red-500" />
+          Test Media Share
         </Button>
       </CardContent>
     </Card>

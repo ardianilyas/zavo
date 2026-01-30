@@ -152,7 +152,10 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                   creatorId={creatorProfile.id}
                   initialSettings={{
                     isTtsEnabled: creatorProfile.isTtsEnabled ?? false,
-                    ttsMinAmount: creatorProfile.ttsMinAmount ?? 10000
+                    ttsMinAmount: creatorProfile.ttsMinAmount ?? 10000,
+                    isMediaShareEnabled: creatorProfile.isMediaShareEnabled ?? false,
+                    mediaShareCostPerSecond: creatorProfile.mediaShareCostPerSecond ?? 1000,
+                    mediaShareMaxDuration: creatorProfile.mediaShareMaxDuration ?? 180,
                   }}
                 />
                 <TestOverlayCard creatorId={creatorProfile.id} />

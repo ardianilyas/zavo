@@ -5,6 +5,8 @@ export const donationSchema = z.object({
   donorName: z.string().min(1, "Name is required"),
   donorEmail: z.string().email().optional().or(z.literal("")),
   message: z.string().max(255).optional(),
+  mediaUrl: z.string().optional(),
+  mediaDuration: z.number().optional(),
 });
 
 export type DonationInput = z.infer<typeof donationSchema>;

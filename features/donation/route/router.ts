@@ -17,6 +17,8 @@ export const donationRouter = router({
         donorEmail: z.string().email().optional().or(z.literal("")),
         amount: z.number().min(10000, "Minimum donation is Rp 10.000"),
         message: z.string().max(255).optional(),
+        mediaUrl: z.string().optional(),
+        mediaDuration: z.number().optional()
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -82,6 +84,8 @@ export const donationRouter = router({
           xenditId: xenditId,     // Xendit ID
           paymentUrl: paymentUrl,
           qrString: qrString || null,
+          mediaUrl: input.mediaUrl,
+          mediaDuration: input.mediaDuration
         })
         .returning();
 
@@ -127,7 +131,9 @@ export const donationRouter = router({
             donorName: d.donorName,
             amount: d.amount,
             message: d.message || "",
-            formattedAmount: `Rp ${d.amount.toLocaleString("id-ID")}`
+            formattedAmount: `Rp ${d.amount.toLocaleString("id-ID")}`,
+            mediaUrl: d.mediaUrl || undefined,
+            mediaDuration: d.mediaDuration || undefined
           });
         }
       };
@@ -158,7 +164,11 @@ export const donationRouter = router({
     }),
 
   sendTestAlert: protectedProcedure
-    .input(z.object({ creatorId: z.string() }))
+    .input(z.object({
+      creatorId: z.string(),
+      mediaUrl: z.string().optional(),
+      mediaDuration: z.number().optional()
+    }))
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
 
@@ -171,11 +181,15 @@ export const donationRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Creator profile not found or unauthorized" });
       }
 
+      const isMediaShare = !!input.mediaUrl;
+
       await EventService.triggerDonation(creatorProfile.username, {
         donorName: "Test User",
-        amount: 50000,
-        message: "This is a test donation alert to verify your overlay!",
-        formattedAmount: "Rp 50.000"
+        amount: isMediaShare ? 20000 : 50000,
+        message: isMediaShare ? "Check out this video!" : "This is a test donation alert to verify your overlay!",
+        formattedAmount: isMediaShare ? "Rp 20.000" : "Rp 50.000",
+        mediaUrl: input.mediaUrl,
+        mediaDuration: input.mediaDuration
       });
 
       return { success: true };
@@ -216,7 +230,9 @@ export const donationRouter = router({
         donorName: targetDonation.donorName,
         amount: targetDonation.amount,
         message: targetDonation.message || "",
-        formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`
+        formattedAmount: `Rp ${targetDonation.amount.toLocaleString("id-ID")}`,
+        mediaUrl: targetDonation.mediaUrl || undefined,
+        mediaDuration: targetDonation.mediaDuration || undefined
       });
 
       return { success: true };

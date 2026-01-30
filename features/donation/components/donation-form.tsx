@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Youtube } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,9 +23,14 @@ import { useDonate, useSimulatePayment } from "../hooks/use-donate";
 interface DonationFormProps {
   recipientUsername: string;
   recipientName: string;
+  mediaSettings: {
+    isEnabled: boolean;
+    costPerSecond: number;
+    maxDuration: number;
+  };
 }
 
-export function DonationForm({ recipientUsername, recipientName }: DonationFormProps) {
+export function DonationForm({ recipientUsername, recipientName, mediaSettings }: DonationFormProps) {
   const [step, setStep] = useState<"form" | "payment">("form");
   const [paymentData, setPaymentData] = useState<{
     donationId: string;
@@ -41,7 +46,8 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
       amount: 10000,
       donorName: "",
       message: "",
-      donorEmail: ""
+      donorEmail: "",
+      mediaUrl: "",
     },
   });
 
@@ -67,9 +73,20 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
   });
 
   function onSubmit(values: DonationInput) {
+    let finalValues = { ...values };
+
+    // Calculate final duration if media URL is present
+    if (mediaSettings.isEnabled && values.mediaUrl) {
+      const calculatedDuration = Math.min(
+        Math.floor(values.amount / mediaSettings.costPerSecond),
+        mediaSettings.maxDuration
+      );
+      finalValues.mediaDuration = calculatedDuration;
+    }
+
     createDonation({
       recipientUsername,
-      ...values,
+      ...finalValues,
     });
   }
 
@@ -193,6 +210,58 @@ export function DonationForm({ recipientUsername, recipientName }: DonationFormP
             )}
           />
         </div>
+
+        {mediaSettings.isEnabled && (
+          <FormField
+            control={form.control}
+            name="mediaUrl"
+            render={({ field }) => {
+              const amount = form.watch("amount") || 0;
+              const duration = Math.min(
+                Math.floor(amount / mediaSettings.costPerSecond),
+                mediaSettings.maxDuration
+              );
+
+              // Only set duration if URL is present (handled in onSubmit typically, but we can set form value here if needed)
+              // Better to calculate on submit or just display here.
+
+              return (
+                <FormItem className="animate-in slide-in-from-top-2 fade-in duration-500">
+                  <FormLabel className="font-medium text-muted-foreground uppercase text-[10px] tracking-wider flex items-center gap-2">
+                    <Youtube className="w-3 h-3 text-red-500" />
+                    Media Share (Optional)
+                  </FormLabel>
+                  <div className="bg-muted/30 p-3 rounded-xl border border-dashed border-red-200 dark:border-red-900/30 space-y-3">
+                    <FormControl>
+                      <Input
+                        placeholder="Paste YouTube Link (e.g. youtu.be/...)"
+                        {...field}
+                        className="h-10 text-sm bg-background border-muted rounded-lg focus:ring-1 focus:ring-red-500/20 transition-all"
+                      />
+                    </FormControl>
+
+                    {field.value && (
+                      <div className="flex items-center justify-between text-xs px-1">
+                        <div className="flex flex-col">
+                          <span className="text-muted-foreground">Est. Duration</span>
+                          <span className="font-bold text-foreground">{duration} seconds</span>
+                        </div>
+                        <div className="flex flex-col text-right">
+                          <span className="text-muted-foreground">Cost</span>
+                          <span className="font-bold text-foreground">Rp {mediaSettings.costPerSecond}/sec</span>
+                        </div>
+                      </div>
+                    )}
+                    {field.value && duration <= 0 && (
+                      <p className="text-xs text-red-500 font-medium">Increase amount to play video (Min Rp {mediaSettings.costPerSecond})</p>
+                    )}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+        )}
 
         <Button
           type="submit"
