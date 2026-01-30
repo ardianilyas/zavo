@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUpdateAlertSettings } from "../hooks/use-update-alert-settings";
 import { Megaphone, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,18 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
 
   const [costPerSecondDraft, setCostPerSecondDraft] = useState(initialSettings.mediaShareCostPerSecond.toString());
   const [maxDurationDraft, setMaxDurationDraft] = useState(initialSettings.mediaShareMaxDuration.toString());
+
+  useEffect(() => {
+    setIsTtsEnabled(initialSettings.isTtsEnabled);
+    setTtsMinAmount(initialSettings.ttsMinAmount);
+    setAmountDraft(initialSettings.ttsMinAmount.toString());
+
+    setIsMediaShareEnabled(initialSettings.isMediaShareEnabled);
+    setMediaShareCostPerSecond(initialSettings.mediaShareCostPerSecond);
+    setMediaShareMaxDuration(initialSettings.mediaShareMaxDuration);
+    setCostPerSecondDraft(initialSettings.mediaShareCostPerSecond.toString());
+    setMaxDurationDraft(initialSettings.mediaShareMaxDuration.toString());
+  }, [initialSettings, creatorId]);
 
 
   // Mutation
