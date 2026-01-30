@@ -4,8 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { api } from "@/trpc/client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useUpdateAlertSettings } from "../hooks/use-update-alert-settings";
 import { Megaphone, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -23,15 +23,9 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
   // Separate state for draft amount to handle generic input behavior correctly
   const [amountDraft, setAmountDraft] = useState(initialSettings.ttsMinAmount.toString());
 
-  const utils = api.useUtils();
-
   // Mutation
-  const updateSettings = api.creator.updateSettings.useMutation({
-    onSuccess: () => {
-      utils.creator.myProfiles.invalidate();
-    },
-    onError: (error) => {
-      toast.error(error.message);
+  const updateSettings = useUpdateAlertSettings({
+    onError: () => {
       // Revert on error
       setIsTtsEnabled(initialSettings.isTtsEnabled);
       setTtsMinAmount(initialSettings.ttsMinAmount);

@@ -1,17 +1,12 @@
 "use client";
 
-import { SetStateAction, useState, useEffect } from "react";
-import { api as trpc } from "@/trpc/client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff, Copy, RefreshCw, Check } from "lucide-react";
 import { toast } from "sonner";
-
-interface StreamKeyCardProps {
-  streamToken: string | null;
-}
-
+import { useRegenerateStreamToken } from "../hooks/use-regenerate-stream-token";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +16,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
+interface StreamKeyCardProps {
+  streamToken: string | null;
+}
 
 export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
   const [showKey, setShowKey] = useState(false);
@@ -32,16 +31,7 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
     setKey(streamToken || "");
   }, [streamToken]);
 
-  const regenerateMutation = trpc.user.regenerateStreamToken.useMutation({
-    onSuccess: (data: { streamToken: SetStateAction<string>; }) => {
-      setKey(data.streamToken);
-      setIsDialogOpen(false);
-      toast.success("Stream key regenerated!");
-    },
-    onError: (err: any) => {
-      toast.error("Failed to regenerate key");
-    }
-  });
+  const regenerateMutation = useRegenerateStreamToken();
 
   const overlayUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/stream/overlay/${key}`;
 
@@ -53,8 +43,14 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
   };
 
   const handleRegenerateConfirm = () => {
-    regenerateMutation.mutate();
+    regenerateMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        setKey(data.streamToken);
+        setIsDialogOpen(false);
+      }
+    });
   };
+
 
   return (
     <Card className="backdrop-blur-md bg-card/50 border-primary/10">

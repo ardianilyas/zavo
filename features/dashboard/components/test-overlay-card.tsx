@@ -2,23 +2,13 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { api } from "@/trpc/client";
 import { toast } from "sonner";
 import { BellRing, Loader2, Layers } from "lucide-react";
+import { useSendTestAlert } from "../hooks/use-send-test-alert";
 
 export function TestOverlayCard({ creatorId }: { creatorId: string }) {
-  const { mutate, isPending } = api.donation.sendTestAlert.useMutation({
-    onSuccess: () => {
-      toast.success("Test alert sent!", {
-        description: "Check your overlay to see the notification.",
-      });
-    },
-    onError: (error) => {
-      toast.error("Failed to send test alert", {
-        description: error.message,
-      });
-    },
-  });
+  const { mutate, isPending } = useSendTestAlert();
+
 
   const handleSpam = () => {
     toast.info("Sending 3 alerts to test queue...");
