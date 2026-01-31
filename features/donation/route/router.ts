@@ -276,4 +276,39 @@ export const donationRouter = router({
         totalPages: Math.ceil(total / input.limit),
       };
     }),
+  getLeaderboard: publicProcedure
+    .input(z.object({ creatorId: z.string() }))
+    .query(async ({ input }) => {
+      const now = new Date();
+      const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      console.log("Fetching Leaderboard for:", input.creatorId);
+
+      try {
+        const leaderboard = await db
+          .select({
+            donorName: donation.donorName,
+            totalAmount: sql<number>`sum(${donation.amount})`.mapWith(Number),
+          })
+          .from(donation)
+          .where(
+            and(
+              eq(donation.recipientId, input.creatorId),
+              eq(donation.status, "PAID"),
+              sql`${donation.createdAt} >= ${firstDayOfMonth.toISOString()}`
+            )
+          )
+          .groupBy(donation.donorName)
+          .orderBy(sql`sum(${donation.amount}) desc`)
+          .limit(10);
+
+        return leaderboard.map((item, index) => ({
+          rank: index + 1,
+          ...item,
+        }));
+      } catch (err) {
+        console.error("Leaderboard Error:", err);
+        return [];
+      }
+    }),
 });

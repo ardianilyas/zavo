@@ -52,6 +52,16 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
     });
   };
 
+  const leaderboardUrl = `${overlayUrl}/leaderboard`;
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardCopied, setLeaderboardCopied] = useState(false);
+
+  const handleCopyLeaderboard = () => {
+    navigator.clipboard.writeText(leaderboardUrl);
+    setLeaderboardCopied(true);
+    toast.success("Leaderboard URL copied to clipboard");
+    setTimeout(() => setLeaderboardCopied(false), 2000);
+  };
 
   return (
     <Card className="shadow-sm border-border bg-gradient-to-br from-card to-secondary/5">
@@ -61,12 +71,13 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
           Stream connection
         </CardTitle>
         <CardDescription>
-          Your unique overlay URL for OBS/Streamlabs.
+          Your unique overlay URLs for OBS/Streamlabs.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Main Alert Overlay */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium text-muted-foreground">Browser Source URL</Label>
+          <Label className="text-sm font-medium text-muted-foreground">Alert Overlay URL</Label>
           <div className="flex items-center gap-2 p-1 pl-3 bg-muted/50 border rounded-xl focus-within:ring-2 focus-within:ring-primary/20 transition-all">
             <div className="flex-1 min-w-0">
               <input
@@ -93,7 +104,40 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
             </Button>
           </div>
           <p className="text-[12px] text-muted-foreground">
-            Add this as a <strong>Browser Source</strong> (1920x1080) in your streaming software.
+            For Alerts, TTS, and Media Share. Add as a Browser Source (1920x1080).
+          </p>
+        </div>
+
+        {/* Leaderboard Overlay */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-muted-foreground">Leaderboard URL</Label>
+          <div className="flex items-center gap-2 p-1 pl-3 bg-muted/50 border rounded-xl focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <div className="flex-1 min-w-0">
+              <input
+                type={showLeaderboard ? "text" : "password"}
+                value={leaderboardUrl}
+                readOnly
+                className="w-full bg-transparent border-none focus:outline-none text-sm font-mono text-foreground h-9"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowLeaderboard(!showLeaderboard)}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showLeaderboard ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopyLeaderboard}
+              className="h-9 rounded-lg mr-1 bg-background shadow-sm hover:bg-background/80"
+            >
+              {leaderboardCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+          <p className="text-[12px] text-muted-foreground">
+            Displays Top 10 Donors (Month). Add as a separate Browser Source.
           </p>
         </div>
 
@@ -136,3 +180,4 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
     </Card>
   );
 }
+
