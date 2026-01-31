@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Pusher from "pusher-js";
 import { api } from "@/trpc/client";
 import { motion, AnimatePresence } from "framer-motion";
-import { Crown, Medal } from "lucide-react";
+import { Crown, Medal, Trophy } from "lucide-react";
 
 interface LeaderboardWidgetProps {
   creatorId: string;
@@ -36,14 +36,26 @@ export function LeaderboardWidget({ creatorId, channelName, cluster, appKey }: L
 
   if (!leaderboard || leaderboard.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 bg-card/50 dark:bg-white/10 backdrop-blur-md rounded-2xl border border-border/50 text-muted-foreground font-medium w-96">
-        <span className="text-sm tracking-tight">No donations yet this month</span>
+      <div className="flex flex-col items-center justify-center p-12 bg-card/80 dark:bg-white/5 backdrop-blur-2xl rounded-[2.5rem] border border-border/50 text-muted-foreground w-lg shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] relative overflow-hidden group">
+        <div className="absolute -top-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
+
+        <div className="mb-6 p-4 bg-primary/10 rounded-3xl text-primary ring-1 ring-primary/20">
+          <Trophy className="w-10 h-10" />
+        </div>
+
+        <div className="text-center space-y-2 relative z-10">
+          <h3 className="text-foreground font-bold text-xl tracking-tight">No Rankings Yet</h3>
+          <p className="text-sm text-muted-foreground max-w-[240px] leading-relaxed mx-auto">
+            Be the first to support and claim the top spot on the leaderboard!
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="w-96 bg-card/80 dark:bg-white/5 backdrop-blur-2xl rounded-[2rem] border border-border/50 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans">
+    <div className="w-lg bg-card/80 dark:bg-white/5 backdrop-blur-2xl rounded-[2rem] border border-border/50 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans">
       <div className="p-6 flex items-center justify-between gap-2 border-b border-border/10">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-xl text-primary">
