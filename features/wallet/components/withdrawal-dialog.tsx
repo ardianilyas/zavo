@@ -60,13 +60,27 @@ export function WithdrawalDialog({ children, creatorId, currentBalance, onSucces
     onSuccess?.();
   });
 
+  const amount = form.watch("amount");
+  const adminFee = 5000;
+  const platformFee = Math.floor(amount * 0.05);
+  const netReceived = amount - adminFee - platformFee;
+
   const onSubmit = (values: CreateWithdrawalInput) => {
     if (values.amount > currentBalance) {
       form.setError("amount", { message: "Insufficient balance" });
       return;
     }
+
+    const netReceivedOnSubmit = values.amount - 5000 - Math.floor(values.amount * 0.05);
+
+    if (netReceivedOnSubmit <= 0) {
+      form.setError("amount", { message: "Amount too low (must cover fees)" });
+      return;
+    }
+
     mutate({ ...values, creatorId });
   };
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -101,6 +115,29 @@ export function WithdrawalDialog({ children, creatorId, currentBalance, onSucces
                     </div>
                   </FormControl>
                   <FormMessage />
+                  <FormMessage />
+
+                  <div className="mt-3 p-3 bg-muted/50 rounded-lg space-y-2 text-sm">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Requested Amount</span>
+                      <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(amount || 0)}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Admin Fee</span>
+                      <span className="text-red-500">-{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(adminFee)}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>Platform Fee (5%)</span>
+                      <span className="text-red-500">-{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(platformFee)}</span>
+                    </div>
+                    <div className="h-px bg-border my-2" />
+                    <div className="flex justify-between font-bold">
+                      <span>Est. Received</span>
+                      <span className={netReceived > 0 ? "text-green-600" : "text-destructive"}>
+                        {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(netReceived > 0 ? netReceived : 0)}
+                      </span>
+                    </div>
+                  </div>
                 </FormItem>
               )}
             />

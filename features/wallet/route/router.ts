@@ -31,6 +31,24 @@ export const payoutRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "Insufficient balance" });
         }
 
+        // Check for Locked Funds (Pending Withdrawals)
+        const pendingRequests = await tx.query.withdrawalRequest.findMany({
+          where: (req, { eq, or, and }) => and(
+            eq(req.creatorId, input.creatorId),
+            or(eq(req.status, "PENDING"), eq(req.status, "PROCESSING"))
+          )
+        });
+
+        const lockedAmount = pendingRequests.reduce((sum, req) => sum + req.amount, 0);
+        const availableBalance = targetCreator.balance - lockedAmount;
+
+        if (availableBalance < input.amount) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Insufficient available balance. You have ${new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR" }).format(lockedAmount)} locked in pending withdrawals.`
+          });
+        }
+
         const [req] = await tx.insert(withdrawalRequest).values({
           creatorId: input.creatorId,
           amount: input.amount,
@@ -40,23 +58,21 @@ export const payoutRouter = router({
           notes: input.notes,
         }).returning();
 
-        await WalletService.recordMovement(tx, {
-          creatorId: input.creatorId,
-          amount: input.amount,
-          type: "DEBIT",
-          description: `Withdrawal Request (${req.id})`,
-          referenceId: req.id,
-          referenceType: "WITHDRAWAL",
-        });
+        // NOTE: We do NOT debit here anymore. Debit happens on Webhook Success.
+
 
         return req;
       });
 
       // 2. Trigger Xendit Disbursement
       try {
+        const adminFee = 5000;
+        const platformFee = Math.floor(request.amount * 0.05);
+        const netPayout = request.amount - adminFee - platformFee;
+
         const disbursement = await XenditService.createDisbursement({
           externalId: request.id,
-          amount: request.amount,
+          amount: netPayout,
           bankCode: request.bankCode,
           accountHolderName: request.accountName,
           accountNumber: request.accountNumber,
@@ -76,22 +92,10 @@ export const payoutRouter = router({
         console.error("Disbursement Failed:", error);
 
         // 4. Rollback / Refund if Xendit call fails
-        await db.transaction(async (tx) => {
-          // Refund Balance
-          await WalletService.recordMovement(tx, {
-            creatorId: input.creatorId,
-            amount: input.amount,
-            type: "CREDIT",
-            description: `Refund: Failed Withdrawal (${request.id})`,
-            referenceId: request.id,
-            referenceType: "ADJUSTMENT",
-          });
-
-          // Mark as Failed
-          await tx.update(withdrawalRequest)
-            .set({ status: "REJECTED", adminNotes: "Xendit API Error: " + error.message })
-            .where(eq(withdrawalRequest.id, request.id));
-        });
+        // 4. Update Status to REJECTED (No Refund needed as we didn't debit)
+        await db.update(withdrawalRequest)
+          .set({ status: "REJECTED", adminNotes: "Xendit API Error: " + error.message })
+          .where(eq(withdrawalRequest.id, request.id));
 
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -139,6 +143,45 @@ export const payoutRouter = router({
 
       return {
         items: history,
+        total,
+        page: input.page,
+        totalPages: Math.ceil(total / limit),
+      };
+    }),
+
+  // Get Withdrawal Requests (More detailed than ledger)
+  getWithdrawals: protectedProcedure
+    .input(z.object({
+      creatorId: z.string(),
+      limit: z.number().optional(),
+      page: z.number().min(1).optional().default(1),
+    }))
+    .query(async ({ input, ctx }: { input: { creatorId: string, limit?: number, page: number }, ctx: any }) => {
+      // Verify ownership
+      const targetCreator = await db.query.creator.findFirst({
+        where: (c, { eq, and }) => and(eq(c.id, input.creatorId), eq(c.userId, ctx.session.user.id))
+      });
+      if (!targetCreator) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+      const limit = input.limit || 50;
+      const offset = (input.page - 1) * limit;
+
+      const [items, total] = await Promise.all([
+        db.query.withdrawalRequest.findMany({
+          where: eq(withdrawalRequest.creatorId, input.creatorId),
+          orderBy: [desc(withdrawalRequest.createdAt)],
+          limit: limit,
+          offset: offset,
+        }),
+        db
+          .select({ count: sql<number>`count(*)` })
+          .from(withdrawalRequest)
+          .where(eq(withdrawalRequest.creatorId, input.creatorId))
+          .then((res) => Number(res[0]?.count || 0)),
+      ]);
+
+      return {
+        items,
         total,
         page: input.page,
         totalPages: Math.ceil(total / limit),

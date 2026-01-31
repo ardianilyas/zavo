@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { withdrawalRequest } from "@/db/schema";
+import { withdrawalRequest, platformRevenue } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { WalletService } from "@/features/wallet/services/wallet.service";
 
@@ -35,14 +35,49 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Already Completed" });
       }
 
-      // Mark as COMPLETED
-      await db.update(withdrawalRequest)
-        .set({
-          status: "COMPLETED",
-          processedAt: new Date(),
-          adminNotes: `Disbursement Succeeded: ${event.id}`
-        })
-        .where(eq(withdrawalRequest.id, targetRequest.id));
+      // Mark as COMPLETED and Record Revenue
+      await db.transaction(async (tx) => {
+        // 1. Update Request Status
+        await tx.update(withdrawalRequest)
+          .set({
+            status: "COMPLETED",
+            processedAt: new Date(),
+            adminNotes: `Disbursement Succeeded: ${event.id}`
+          })
+          .where(eq(withdrawalRequest.id, targetRequest.id));
+
+
+        // 2. Record revenue/fees
+        const adminFee = 5000;
+        const platformFee = Math.floor(targetRequest.amount * 0.05);
+
+        await tx.insert(platformRevenue).values([
+          {
+            amount: adminFee,
+            type: "ADMIN_FEE",
+            description: "Fixed bank transfer fee",
+            referenceId: targetRequest.id,
+            referenceType: "WITHDRAWAL",
+          },
+          {
+            amount: platformFee,
+            type: "PLATFORM_FEE",
+            description: "5% platform commission",
+            referenceId: targetRequest.id,
+            referenceType: "WITHDRAWAL",
+          }
+        ]);
+
+        // 3. DEBIT the Creator Balance (Deferred Debit)
+        await WalletService.recordMovement(tx, {
+          creatorId: targetRequest.creatorId,
+          amount: targetRequest.amount,
+          type: "DEBIT",
+          description: `Withdrawal Completed (${targetRequest.id})`,
+          referenceId: targetRequest.id,
+          referenceType: "WITHDRAWAL",
+        });
+      });
 
       return NextResponse.json({ status: "success" });
     }
@@ -64,27 +99,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ message: "Already Processed" });
       }
 
-      // Perform Refund Logic Atomically
-      await db.transaction(async (tx) => {
-        // 1. Refund Balance
-        await WalletService.recordMovement(tx, {
-          creatorId: targetRequest.creatorId,
-          amount: targetRequest.amount,
-          type: "CREDIT",
-          description: `Refund: Failed Payout (${failureCode})`,
-          referenceId: targetRequest.id,
-          referenceType: "ADJUSTMENT",
-        });
-
-        // 2. Mark Request as REJECTED
-        await tx.update(withdrawalRequest)
-          .set({
-            status: "REJECTED",
-            processedAt: new Date(),
-            adminNotes: `Disbursement Failed: ${failureCode} - ${failureMessage}`
-          })
-          .where(eq(withdrawalRequest.id, targetRequest.id));
-      });
+      // Update Status to REJECTED (No Refund Needed)
+      await db.update(withdrawalRequest)
+        .set({
+          status: "REJECTED",
+          processedAt: new Date(),
+          adminNotes: `Disbursement Failed: ${failureCode} - ${failureMessage}`
+        })
+        .where(eq(withdrawalRequest.id, targetRequest.id));
 
       return NextResponse.json({ status: "success", action: "refunded" });
     }

@@ -20,12 +20,10 @@ export const useTransactionHistory = (creatorId: string, limit?: number, page?: 
 };
 
 export const useWithdrawalHistory = (creatorId: string, limit?: number, page?: number) => {
-  return api.payout.getHistory.useQuery({
+  return api.payout.getWithdrawals.useQuery({
     creatorId,
     limit,
     page,
-    referenceType: "WITHDRAWAL",
-    type: "DEBIT"
   }, {
     enabled: !!creatorId
   });

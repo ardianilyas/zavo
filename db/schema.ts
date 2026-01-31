@@ -130,3 +130,13 @@ export const withdrawalRequest = pgTable("withdrawal_request", {
   processedAt: timestamp("processed_at"),
 });
 
+export const platformRevenue = pgTable("platform_revenue", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  amount: integer("amount").notNull(),
+  type: text("type", { enum: ["ADMIN_FEE", "PLATFORM_FEE"] }).notNull(),
+  description: text("description"),
+  referenceId: text("reference_id"),
+  referenceType: text("reference_type", { enum: ["WITHDRAWAL"] }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+

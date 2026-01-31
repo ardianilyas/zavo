@@ -41,7 +41,7 @@ export interface XenditQRCodeResponse {
 }
 
 export class XenditService {
-  private static getHeaders() {
+  private static getHeaders(extraHeaders: Record<string, string> = {}) {
     const apiKey = process.env.XENDIT_SECRET_KEY || "";
     if (!apiKey) throw new Error("XENDIT_SECRET_KEY is missing");
     const base64Key = Buffer.from(apiKey + ":").toString("base64");
@@ -50,7 +50,16 @@ export class XenditService {
       "Authorization": `Basic ${base64Key}`,
       "Content-Type": "application/json",
       "api-version": XENDIT_API_VERSION,
+      ...extraHeaders,
     };
+  }
+
+  private static getCallbackHeader(path: string): Record<string, string> {
+    const appUrl = process.env.APP_URL; // Required for dynamic webhooks (e.g. ngrok)
+    if (!appUrl) return {};
+    // Ensure no double slash if appUrl has trailing slash
+    const baseUrl = appUrl.replace(/\/$/, "");
+    return { "x-callback-url": `${baseUrl}${path}` };
   }
 
   static async createQRCode(params: CreateQRCodeParams): Promise<XenditQRCodeResponse> {
@@ -65,7 +74,7 @@ export class XenditService {
 
     const response = await fetch("https://api.xendit.co/qr_codes", {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(this.getCallbackHeader("/api/webhooks/xendit")),
       body: JSON.stringify(payload),
     });
 
@@ -112,7 +121,7 @@ export class XenditService {
 
     const response = await fetch("https://api.xendit.co/disbursements", {
       method: "POST",
-      headers: this.getHeaders(),
+      headers: this.getHeaders(this.getCallbackHeader("/api/webhooks/xendit/disbursement")),
       body: JSON.stringify(payload),
     });
 
