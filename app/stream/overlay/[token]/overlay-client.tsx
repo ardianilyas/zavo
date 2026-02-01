@@ -15,6 +15,7 @@ interface OverlayClientProps {
     isTtsEnabled: boolean;
     ttsMinAmount: number;
     overlaySettings?: any;
+    goalOverlaySettings?: any;
   };
   visibleWidgets?: {
     alerts?: boolean;
@@ -50,6 +51,7 @@ export function OverlayClient({ creatorId, username, channelName, cluster, appKe
               username={username}
               cluster={cluster}
               appKey={appKey}
+              settings={settings.goalOverlaySettings}
             />
           )}
           {show.leaderboard && (

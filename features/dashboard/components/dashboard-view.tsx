@@ -22,6 +22,7 @@ import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
 import { AlertSettingsCard } from "@/features/dashboard/components/alert-settings-card";
 import { OverlaySettingsCard } from "@/features/dashboard/components/overlay-settings-card";
 import { GoalSettingsCard } from "@/features/dashboard/components/goal-settings-card";
+import { GoalOverlaySettingsCard } from "@/features/dashboard/components/goal-overlay-settings-card";
 
 interface DashboardViewProps {
   creatorProfile: any;
@@ -166,6 +167,10 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
               <div className="space-y-6">
                 <TestOverlayCard creatorId={creatorProfile.id} />
                 <OverlaySettingsCard
+                  creatorId={creatorProfile.id}
+                  initialSettings={creatorProfile}
+                />
+                <GoalOverlaySettingsCard
                   creatorId={creatorProfile.id}
                   initialSettings={creatorProfile}
                 />

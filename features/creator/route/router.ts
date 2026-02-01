@@ -75,6 +75,13 @@ export const creatorRouter = router({
           volume: z.number().min(0).max(100).optional(),
           animationType: z.enum(["fade", "slide", "bounce"]).optional(),
         }).optional(),
+        goalOverlaySettings: z.object({
+          backgroundColor: z.string().optional(),
+          textColor: z.string().optional(),
+          progressBarColor: z.string().optional(),
+          borderColor: z.string().optional(),
+          borderRadius: z.number().min(0).max(32).optional(),
+        }).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -101,6 +108,10 @@ export const creatorRouter = router({
 
       if (input.overlaySettings) {
         updateData.overlaySettings = input.overlaySettings;
+      }
+
+      if (input.goalOverlaySettings) {
+        updateData.goalOverlaySettings = input.goalOverlaySettings;
       }
 
       // Filter out undefined values to avoid overwriting with null/default

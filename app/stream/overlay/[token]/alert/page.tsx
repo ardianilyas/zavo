@@ -32,6 +32,7 @@ export default async function AlertPage({ params }: PageProps) {
         isTtsEnabled: targetCreator.isTtsEnabled ?? false,
         ttsMinAmount: targetCreator.ttsMinAmount ?? 10000,
         overlaySettings: targetCreator.overlaySettings,
+        goalOverlaySettings: targetCreator.goalOverlaySettings,
       }}
       visibleWidgets={{
         alerts: true,
