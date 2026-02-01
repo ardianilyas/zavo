@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { creator } from "@/db/schema";
 import { eq, count } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { RESERVED_USERNAMES } from "@/lib/constants";
 
 export const creatorRouter = router({
   myProfiles: protectedProcedure.query(async ({ ctx }) => {
@@ -34,7 +35,15 @@ export const creatorRouter = router({
         });
       }
 
-      // 2. Check username uniqueness
+      // 2. Check reserved usernames
+      if (RESERVED_USERNAMES.includes(input.username.toLowerCase() as any)) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This username is reserved."
+        });
+      }
+
+      // 3. Check username uniqueness
       const existingUsername = await db.query.creator.findFirst({
         where: eq(creator.username, input.username)
       });

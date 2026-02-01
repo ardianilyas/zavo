@@ -95,7 +95,7 @@ export function CreatorsView() {
                   </Link>
                 </Button>
                 <Button variant="ghost" className="w-full hover:bg-secondary transition-colors" asChild>
-                  <Link href={`/u/${profile.username}`} target="_blank">
+                  <Link href={`/${profile.username}`} target="_blank">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     View
                   </Link>
