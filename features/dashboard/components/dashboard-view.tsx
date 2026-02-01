@@ -23,6 +23,7 @@ import { AlertSettingsCard } from "@/features/dashboard/components/alert-setting
 import { OverlaySettingsCard } from "@/features/dashboard/components/overlay-settings-card";
 import { GoalSettingsCard } from "@/features/dashboard/components/goal-settings-card";
 import { GoalOverlaySettingsCard } from "@/features/dashboard/components/goal-overlay-settings-card";
+import { LeaderboardOverlaySettingsCard } from "@/features/dashboard/components/leaderboard-overlay-settings-card";
 
 interface DashboardViewProps {
   creatorProfile: any;
@@ -147,10 +148,20 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
             </div>
           </TabsContent>
 
-          <TabsContent value="stream" className="space-y-6">
-            <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
-              <div className="space-y-6">
-                <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
+          <TabsContent value="stream" className="space-y-8">
+            {/* Overlay URLs - Full Width */}
+            <div>
+              <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
+            </div>
+
+            {/* Feature Settings Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Feature Settings</h3>
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+              </div>
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 <AlertSettingsCard
                   creatorId={creatorProfile.id}
                   initialSettings={{
@@ -163,9 +174,16 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                 />
                 <GoalSettingsCard creatorId={creatorProfile.id} />
               </div>
+            </div>
 
-              <div className="space-y-6">
-                <TestOverlayCard creatorId={creatorProfile.id} />
+            {/* Overlay Customization Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Overlay Customization</h3>
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+              </div>
+              <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                 <OverlaySettingsCard
                   creatorId={creatorProfile.id}
                   initialSettings={creatorProfile}
@@ -174,6 +192,22 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                   creatorId={creatorProfile.id}
                   initialSettings={creatorProfile}
                 />
+                <LeaderboardOverlaySettingsCard
+                  creatorId={creatorProfile.id}
+                  initialSettings={creatorProfile}
+                />
+              </div>
+            </div>
+
+            {/* Test Overlay */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 px-1">
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Testing</h3>
+                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+              </div>
+              <div className="max-w-xl">
+                <TestOverlayCard creatorId={creatorProfile.id} />
               </div>
             </div>
           </TabsContent>

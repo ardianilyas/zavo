@@ -33,6 +33,7 @@ export default async function LeaderboardPage({ params }: PageProps) {
         ttsMinAmount: targetCreator.ttsMinAmount ?? 10000,
         overlaySettings: targetCreator.overlaySettings,
         goalOverlaySettings: targetCreator.goalOverlaySettings,
+        leaderboardOverlaySettings: targetCreator.leaderboardOverlaySettings,
       }}
       visibleWidgets={{
         alerts: false,

@@ -16,6 +16,7 @@ interface OverlayClientProps {
     ttsMinAmount: number;
     overlaySettings?: any;
     goalOverlaySettings?: any;
+    leaderboardOverlaySettings?: any;
   };
   visibleWidgets?: {
     alerts?: boolean;
@@ -60,6 +61,7 @@ export function OverlayClient({ creatorId, username, channelName, cluster, appKe
               channelName={`stream-${username}`}
               cluster={cluster}
               appKey={appKey}
+              settings={settings.leaderboardOverlaySettings}
             />
           )}
         </div>

@@ -37,6 +37,7 @@ export const creator = pgTable("creator", {
   bankDetailsUpdatedAt: timestamp("bank_details_updated_at"),
   overlaySettings: json("overlay_settings"),
   goalOverlaySettings: json("goal_overlay_settings"),
+  leaderboardOverlaySettings: json("leaderboard_overlay_settings"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

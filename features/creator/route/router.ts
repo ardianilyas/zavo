@@ -82,6 +82,16 @@ export const creatorRouter = router({
           borderColor: z.string().optional(),
           borderRadius: z.number().min(0).max(32).optional(),
         }).optional(),
+        leaderboardOverlaySettings: z.object({
+          backgroundColor: z.string().optional(),
+          textColor: z.string().optional(),
+          borderColor: z.string().optional(),
+          headerColor: z.string().optional(),
+          goldColor: z.string().optional(),
+          silverColor: z.string().optional(),
+          bronzeColor: z.string().optional(),
+          borderRadius: z.number().min(0).max(32).optional(),
+        }).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -112,6 +122,10 @@ export const creatorRouter = router({
 
       if (input.goalOverlaySettings) {
         updateData.goalOverlaySettings = input.goalOverlaySettings;
+      }
+
+      if (input.leaderboardOverlaySettings) {
+        updateData.leaderboardOverlaySettings = input.leaderboardOverlaySettings;
       }
 
       // Filter out undefined values to avoid overwriting with null/default
