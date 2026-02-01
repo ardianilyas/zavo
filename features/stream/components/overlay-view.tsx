@@ -9,6 +9,7 @@ interface OverlayViewProps {
   settings?: {
     isTtsEnabled: boolean;
     ttsMinAmount: number;
+    overlaySettings?: any;
   };
 }
 
@@ -16,6 +17,12 @@ interface OverlayViewProps {
 import YouTube from "react-youtube";
 
 export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
+  const overlayStyles = settings?.overlaySettings || {};
+
+  const backgroundColor = overlayStyles.backgroundColor || "#fae8ff";
+  const textColor = overlayStyles.textColor || "#701a75";
+  const borderColor = overlayStyles.borderColor || "#f5d0fe";
+  const animationType = overlayStyles.animationType || "fade";
 
   useEffect(() => {
     if (currentAlert && settings?.isTtsEnabled && currentAlert.message) {
@@ -35,6 +42,21 @@ export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
   const videoId = currentAlert?.mediaUrl ? getYoutubeId(currentAlert.mediaUrl) : null;
   const alertDuration = currentAlert?.mediaDuration ? currentAlert.mediaDuration + 2 : 10;
 
+  // Animation Variants
+  const variants = {
+    initial:
+      animationType === "slide" ? { y: 100, opacity: 0 } :
+        animationType === "bounce" ? { scale: 0.8, opacity: 0 } :
+          { y: -50, opacity: 0, scale: 0.9 }, // fade/default
+    animate:
+      animationType === "slide" ? { y: 0, opacity: 1 } :
+        animationType === "bounce" ? { scale: 1, opacity: 1 } :
+          { y: 0, opacity: 1, scale: 1 },
+    exit:
+      animationType === "slide" ? { y: 100, opacity: 0 } :
+        animationType === "bounce" ? { scale: 0.8, opacity: 0 } :
+          { y: -50, opacity: 0, scale: 0.9 },
+  };
 
 
   return (
@@ -43,9 +65,10 @@ export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
         {currentAlert && (
           <motion.div
             key={JSON.stringify(currentAlert)}
-            initial={{ y: -50, opacity: 0, scale: 0.9 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: -50, opacity: 0, scale: 0.9 }}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            variants={variants}
             className="flex flex-col w-full max-w-2xl items-center relative z-50 px-4"
           >
             {videoId && (
@@ -80,14 +103,28 @@ export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
               </div>
             )}
 
-            <div className="flex flex-col w-full items-start text-left p-8 bg-[#fae8ff] border border-[#f5d0fe] rounded-2xl shadow-xl relative overflow-hidden">
+            <div
+              className="flex flex-col w-full items-start text-left p-8 rounded-2xl shadow-xl relative overflow-hidden"
+              style={{
+                backgroundColor: backgroundColor,
+                borderColor: borderColor,
+                borderWidth: "1px",
+                borderStyle: "solid"
+              }}
+            >
               <div className="relative z-10 w-full">
-                <div className="text-lg font-bold text-[#701a75] w-full truncate">
+                <div
+                  className="text-lg font-bold w-full truncate"
+                  style={{ color: textColor }}
+                >
                   {currentAlert.donorName} donated {currentAlert.formattedAmount}
                 </div>
 
                 {currentAlert.message && (
-                  <div className="mt-2 text-[15px] font-medium text-[#86198f]/80 leading-relaxed break-words w-full">
+                  <div
+                    className="mt-2 text-[15px] font-medium leading-relaxed break-words w-full"
+                    style={{ color: textColor, opacity: 0.9 }}
+                  >
                     {currentAlert.message}
                   </div>
                 )}

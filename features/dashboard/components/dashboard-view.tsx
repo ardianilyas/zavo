@@ -20,6 +20,7 @@ import { TransactionLedger } from "@/features/wallet/components/transaction-ledg
 
 import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
 import { AlertSettingsCard } from "@/features/dashboard/components/alert-settings-card";
+import { OverlaySettingsCard } from "@/features/dashboard/components/overlay-settings-card";
 
 interface DashboardViewProps {
   creatorProfile: any;
@@ -145,8 +146,8 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
           </TabsContent>
 
           <TabsContent value="stream" className="space-y-6">
-            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
-              <div className="lg:col-span-2 space-y-6">
+            <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+              <div className="space-y-6">
                 <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
                 <AlertSettingsCard
                   creatorId={creatorProfile.id}
@@ -160,8 +161,12 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                 />
               </div>
 
-              <div className="lg:col-span-1 space-y-6">
+              <div className="space-y-6">
                 <TestOverlayCard creatorId={creatorProfile.id} />
+                <OverlaySettingsCard
+                  creatorId={creatorProfile.id}
+                  initialSettings={creatorProfile}
+                />
               </div>
             </div>
           </TabsContent>

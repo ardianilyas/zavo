@@ -57,43 +57,31 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
     },
   });
 
-  // Debounce for amount update (or save on blur)
-  const saveAmount = () => {
+  // Save handler
+  const handleSave = () => {
+    updateSettings.mutate({
+      creatorId,
+      isTtsEnabled,
+      ttsMinAmount,
+      isMediaShareEnabled,
+      mediaShareCostPerSecond,
+      mediaShareMaxDuration,
+    });
+    toast.success("Settings updated successfully");
+  };
+
+  // Validators (update state on blur)
+  const validateAmount = () => {
     const val = parseInt(amountDraft);
     if (isNaN(val) || val < 0) {
       toast.error("Please enter a valid amount");
       setAmountDraft(ttsMinAmount.toString());
       return;
     }
-
-    if (val === ttsMinAmount) return; // No change
-
     setTtsMinAmount(val);
-    updateSettings.mutate({
-      creatorId,
-      ttsMinAmount: val,
-    });
-    toast.success("Minimum amount updated");
   };
 
-  const handleToggle = (checked: boolean) => {
-    updateSettings.mutate({
-      creatorId,
-      isTtsEnabled: checked,
-    });
-    toast.success(checked ? "Text-to-Speech enabled" : "Text-to-Speech disabled");
-  };
-
-  const handleMediaShareToggle = (checked: boolean) => {
-    setIsMediaShareEnabled(checked);
-    updateSettings.mutate({
-      creatorId,
-      isMediaShareEnabled: checked,
-    });
-    toast.success(checked ? "Media Share enabled" : "Media Share disabled");
-  };
-
-  const saveMediaShareSettings = () => {
+  const validateMediaShareSettings = () => {
     const cost = parseInt(costPerSecondDraft);
     const duration = parseInt(maxDurationDraft);
 
@@ -109,17 +97,16 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
       return;
     }
 
-    if (cost === mediaShareCostPerSecond && duration === mediaShareMaxDuration) return;
-
     setMediaShareCostPerSecond(cost);
     setMediaShareMaxDuration(duration);
+  };
 
-    updateSettings.mutate({
-      creatorId,
-      mediaShareCostPerSecond: cost,
-      mediaShareMaxDuration: duration,
-    });
-    toast.success("Media Share settings updated");
+  const handleToggle = (checked: boolean) => {
+    setIsTtsEnabled(checked);
+  };
+
+  const handleMediaShareToggle = (checked: boolean) => {
+    setIsMediaShareEnabled(checked);
   };
 
   return (
@@ -169,19 +156,11 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     type="number"
                     value={amountDraft}
                     onChange={(e) => setAmountDraft(e.target.value)}
-                    onBlur={saveAmount}
+                    onBlur={validateAmount}
                     onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
                     className="h-9"
                     disabled={updateSettings.isPending}
                   />
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={saveAmount}
-                    disabled={parseInt(amountDraft) === ttsMinAmount || updateSettings.isPending}
-                  >
-                    Save
-                  </Button>
                 </div>
               </div>
             </div>
@@ -223,7 +202,7 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     min={1000}
                     value={costPerSecondDraft}
                     onChange={(e) => setCostPerSecondDraft(e.target.value)}
-                    onBlur={saveMediaShareSettings}
+                    onBlur={validateMediaShareSettings}
                     disabled={updateSettings.isPending}
                   />
                   <p className="text-[10px] text-muted-foreground">Min. Rp 1.000</p>
@@ -239,7 +218,7 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     max={180}
                     value={maxDurationDraft}
                     onChange={(e) => setMaxDurationDraft(e.target.value)}
-                    onBlur={saveMediaShareSettings}
+                    onBlur={validateMediaShareSettings}
                     disabled={updateSettings.isPending}
                   />
                   <p className="text-[10px] text-muted-foreground">Max. 180s</p>
@@ -247,6 +226,12 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
               </div>
             </div>
           )}
+        </div>
+
+        <div className="flex justify-end pt-4 border-t">
+          <Button onClick={handleSave} disabled={updateSettings.isPending}>
+            Save Changes
+          </Button>
         </div>
 
       </CardContent>

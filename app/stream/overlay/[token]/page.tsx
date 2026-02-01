@@ -33,6 +33,7 @@ export default async function OverlayPage({ params }: PageProps) {
       settings={{
         isTtsEnabled: targetCreator.isTtsEnabled ?? false,
         ttsMinAmount: targetCreator.ttsMinAmount ?? 10000,
+        overlaySettings: targetCreator.overlaySettings,
       }}
     />
   );

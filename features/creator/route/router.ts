@@ -68,6 +68,13 @@ export const creatorRouter = router({
         isMediaShareEnabled: z.boolean().optional(),
         mediaShareCostPerSecond: z.number().min(1000).optional(),
         mediaShareMaxDuration: z.number().max(180).optional(),
+        overlaySettings: z.object({
+          backgroundColor: z.string().optional(),
+          textColor: z.string().optional(),
+          borderColor: z.string().optional(),
+          volume: z.number().min(0).max(100).optional(),
+          animationType: z.enum(["fade", "slide", "bounce"]).optional(),
+        }).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -84,15 +91,24 @@ export const creatorRouter = router({
       }
 
       // 2. Update
+      const updateData: any = {
+        isTtsEnabled: input.isTtsEnabled,
+        ttsMinAmount: input.ttsMinAmount,
+        isMediaShareEnabled: input.isMediaShareEnabled,
+        mediaShareCostPerSecond: input.mediaShareCostPerSecond,
+        mediaShareMaxDuration: input.mediaShareMaxDuration,
+      };
+
+      if (input.overlaySettings) {
+        updateData.overlaySettings = input.overlaySettings;
+      }
+
+      // Filter out undefined values to avoid overwriting with null/default
+      Object.keys(updateData).forEach(key => updateData[key] === undefined && delete updateData[key]);
+
       const [updatedCreator] = await db
         .update(creator)
-        .set({
-          isTtsEnabled: input.isTtsEnabled,
-          ttsMinAmount: input.ttsMinAmount,
-          isMediaShareEnabled: input.isMediaShareEnabled,
-          mediaShareCostPerSecond: input.mediaShareCostPerSecond,
-          mediaShareMaxDuration: input.mediaShareMaxDuration,
-        })
+        .set(updateData)
         .where(eq(creator.id, input.creatorId))
         .returning();
 

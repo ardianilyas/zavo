@@ -10,6 +10,7 @@ interface OverlayClientProps {
   settings: {
     isTtsEnabled: boolean;
     ttsMinAmount: number;
+    overlaySettings?: any;
   };
 }
 
