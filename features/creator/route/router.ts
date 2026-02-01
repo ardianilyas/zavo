@@ -91,6 +91,7 @@ export const creatorRouter = router({
           silverColor: z.string().optional(),
           bronzeColor: z.string().optional(),
           borderRadius: z.number().min(0).max(32).optional(),
+          title: z.string().optional(),
         }).optional(),
       })
     )

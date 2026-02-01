@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useUpdateAlertSettings } from "../hooks/use-update-alert-settings";
 import { Crown, Play, Settings2 } from "lucide-react";
@@ -63,6 +64,7 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
     silverColor: "#e2e8f0",
     bronzeColor: "#fed7aa",
     borderRadius: 32,
+    title: "Leaderboard",
   };
 
   const saved = initialSettings?.leaderboardOverlaySettings || {};
@@ -75,6 +77,7 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
   const [silverColor, setSilverColor] = useState(saved.silverColor || defaults.silverColor);
   const [bronzeColor, setBronzeColor] = useState(saved.bronzeColor || defaults.bronzeColor);
   const [borderRadius, setBorderRadius] = useState(saved.borderRadius ?? defaults.borderRadius);
+  const [title, setTitle] = useState(saved.title || defaults.title);
   const [key, setKey] = useState(0);
 
   const updateSettings = useUpdateAlertSettings();
@@ -91,6 +94,7 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
         silverColor,
         bronzeColor,
         borderRadius,
+        title,
       }
     });
     toast.success("Leaderboard overlay styles updated");
@@ -144,7 +148,7 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
                 <div className="p-4 flex items-center justify-between border-b" style={{ borderColor: `${borderColor}40`, backgroundColor: headerColor }}>
                   <div className="flex items-center gap-2">
                     <Crown className="w-4 h-4" style={{ color: textColor, opacity: 0.7 }} />
-                    <h2 className="font-bold text-sm" style={{ color: textColor }}>Leaderboard</h2>
+                    <h2 className="font-bold text-sm" style={{ color: textColor }}>{title}</h2>
                   </div>
                   <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" style={{ color: textColor, opacity: 0.5 }} />
                 </div>
@@ -193,6 +197,15 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
 
           {/* Colors Column 1 */}
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Widget Title</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Leaderboard"
+                maxLength={30}
+              />
+            </div>
             <ColorPicker
               label="Background Color"
               color={backgroundColor}

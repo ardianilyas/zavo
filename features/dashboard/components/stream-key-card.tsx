@@ -189,9 +189,9 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button
-              variant="ghost"
+              variant="destructive"
               size="sm"
-              className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 h-auto py-2"
+              className="h-auto py-2"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-2" />
               Reset Stream Key

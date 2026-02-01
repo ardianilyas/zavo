@@ -15,6 +15,7 @@ interface LeaderboardOverlaySettings {
   silverColor?: string;
   bronzeColor?: string;
   borderRadius?: number;
+  title?: string;
 }
 
 interface LeaderboardWidgetProps {
@@ -37,6 +38,7 @@ export function LeaderboardWidget({ creatorId, channelName, cluster, appKey, set
   const silverColor = settings?.silverColor || "#e2e8f0";
   const bronzeColor = settings?.bronzeColor || "#fed7aa";
   const borderRadius = settings?.borderRadius ?? 32;
+  const title = settings?.title || "Leaderboard";
 
   useEffect(() => {
     const pusher = new Pusher(appKey, {
@@ -100,7 +102,7 @@ export function LeaderboardWidget({ creatorId, channelName, cluster, appKey, set
             <Crown className="w-5 h-5" style={{ color: textColor, opacity: 0.7 }} />
           </div>
           <div>
-            <h2 className="font-bold text-lg tracking-tight" style={{ color: textColor }}>Leaderboard</h2>
+            <h2 className="font-bold text-lg tracking-tight" style={{ color: textColor }}>{title}</h2>
             <p className="text-[10px] uppercase tracking-[0.2em] font-bold" style={{ color: textColor, opacity: 0.5 }}>Monthly Rankings</p>
           </div>
         </div>

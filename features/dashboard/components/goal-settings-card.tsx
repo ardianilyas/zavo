@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { api } from "@/trpc/client";
 import { toast } from "sonner";
-import { Target, Flag, CircleDollarSign } from "lucide-react";
+import { Target, Flag, CircleDollarSign, Trash } from "lucide-react";
 import Pusher from "pusher-js";
 
 interface GoalSettingsCardProps {
@@ -99,11 +99,12 @@ export function GoalSettingsCard({ creatorId }: GoalSettingsCardProps) {
               </Button>
               <Button
                 variant="destructive"
-                className="flex-1 opacity-80 hover:opacity-100"
+                className="flex-1"
                 onClick={() => handleStop("CANCELLED")}
                 disabled={stopGoal.isPending}
               >
-                Cancel
+                <Trash className="w-4 h-4 mr-2" />
+                Remove
               </Button>
             </div>
           </div>
