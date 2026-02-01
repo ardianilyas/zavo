@@ -282,12 +282,13 @@ export const donationRouter = router({
       const now = new Date();
       const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      console.log("Fetching Leaderboard for:", input.creatorId);
-
       try {
-        const leaderboard = await db
+        // 1. Aggregate donations by Email (prioritized) or Name
+        // We group by email if available, otherwise name.
+        const leaderboardData = await db
           .select({
-            donorName: donation.donorName,
+            email: donation.donorEmail,
+            fallbackName: sql<string>`MAX(${donation.donorName})`,
             totalAmount: sql<number>`sum(${donation.amount})`.mapWith(Number),
           })
           .from(donation)
@@ -298,14 +299,51 @@ export const donationRouter = router({
               sql`${donation.createdAt} >= ${firstDayOfMonth.toISOString()}`
             )
           )
-          .groupBy(donation.donorName)
+          .groupBy(sql`COALESCE(${donation.donorEmail}, ${donation.donorName})`, donation.donorEmail)
           .orderBy(sql`sum(${donation.amount}) desc`)
           .limit(10);
 
-        return leaderboard.map((item, index) => ({
-          rank: index + 1,
-          ...item,
-        }));
+        // 2. Fetch registered users for those emails
+        const emails = leaderboardData
+          .map((d) => d.email)
+          .filter((e): e is string => !!e);
+
+        const userMap = new Map<string, string>();
+
+        if (emails.length > 0) {
+          // Dynamic import to avoid conflict if I don't update top imports yet, 
+          // or I can just use the ctx callback style `where: (t, { inArray }) => ...` 
+          // but `db.query.user.findMany` supports callback style!
+          const users = await db.query.user.findMany({
+            columns: { email: true, username: true, name: true },
+            where: (u, { inArray }) => inArray(u.email, emails)
+          });
+
+          users.forEach(u => {
+            if (u.email) userMap.set(u.email, u.username || u.name || "User");
+          });
+        }
+
+        // 3. Map to result
+        return leaderboardData.map((item, index) => {
+          let displayName = item.fallbackName;
+
+          if (item.email && userMap.has(item.email)) {
+            // Prefix with @ if it looks like a username, or just return as is?
+            // Requirement: "show the creator / user username"
+            // Let's assume just the username string.
+            const u = userMap.get(item.email);
+            if (u) displayName = u; // `username` is usually preferred
+          }
+
+          return {
+            id: item.email || item.fallbackName || `donor-${index}`,
+            rank: index + 1,
+            donorName: displayName,
+            totalAmount: item.totalAmount,
+          };
+        });
+
       } catch (err) {
         console.error("Leaderboard Error:", err);
         return [];

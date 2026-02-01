@@ -92,7 +92,7 @@ export function LeaderboardWidget({ creatorId, channelName, cluster, appKey }: L
 
             return (
               <motion.div
-                key={donor.donorName}
+                key={donor.id}
                 layout
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
