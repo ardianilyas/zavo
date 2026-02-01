@@ -55,7 +55,7 @@ export function LeaderboardWidget({ creatorId, channelName, cluster, appKey }: L
   }
 
   return (
-    <div className="w-lg bg-card rounded-[2rem] border border-border overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans">
+    <div className="w-lg bg-card rounded-[2rem] border border-border overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans text-foreground">
       <div className="p-6 flex items-center justify-between gap-2 border-b border-border/10">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-xl text-primary">

@@ -33,7 +33,7 @@ export function OverlayClient({ creatorId, username, channelName, cluster, appKe
   const show = visibleWidgets || { alerts: true, goal: true, leaderboard: true };
 
   return (
-    <div className="w-full h-screen overflow-hidden relative font-sans">
+    <div className="w-full h-screen overflow-hidden relative font-sans force-light">
       {show.alerts && (
         <AlertOverlay
           currentAlert={currentAlert}

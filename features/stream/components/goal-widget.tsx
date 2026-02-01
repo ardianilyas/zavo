@@ -65,7 +65,7 @@ export function GoalWidget({ creatorId, username, cluster, appKey }: GoalWidgetP
   const percentage = Math.min(100, (goalState.currentAmount / goalState.targetAmount) * 100);
 
   return (
-    <div className="w-lg bg-card/95 backdrop-blur-md rounded-[2rem] border border-border overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans mb-4">
+    <div className="w-lg bg-card/95 backdrop-blur-md rounded-[2rem] border border-border overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] font-sans mb-4 text-foreground">
       <div className="p-6 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -74,7 +74,7 @@ export function GoalWidget({ creatorId, username, cluster, appKey }: GoalWidgetP
               <Target className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-lg leading-tight tracking-tight">{goalState.title}</h2>
+              <h2 className="font-bold text-lg leading-tight tracking-tight text-foreground">{goalState.title}</h2>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest">Goal Progress</p>
             </div>
           </div>
@@ -104,7 +104,7 @@ export function GoalWidget({ creatorId, username, cluster, appKey }: GoalWidgetP
 
         {/* Amounts */}
         <div className="flex justify-between font-mono font-bold text-sm tracking-tight opacity-80">
-          <span>{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(goalState.currentAmount)}</span>
+          <span className="text-foreground">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(goalState.currentAmount)}</span>
           <span className="text-muted-foreground">{new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(goalState.targetAmount)}</span>
         </div>
       </div>
