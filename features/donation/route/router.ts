@@ -6,6 +6,7 @@ import { eq, sql, and } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { XenditService } from "@/lib/xendit-service";
 import { EventService } from "@/lib/events";
+import { GoalService } from "@/features/goal/services/goal.service";
 import { randomUUID } from "crypto";
 
 export const donationRouter = router({
@@ -124,6 +125,10 @@ export const donationRouter = router({
       const triggerEvent = async (donationId: string) => {
         const d = await db.query.donation.findFirst({ where: eq(donation.id, donationId) });
         if (!d) return;
+
+        // Update Goal (Simulated)
+        await GoalService.updateProgress(d.recipientId, d.amount);
+
         // Find recipient in CREATOR table
         const r = await db.query.creator.findFirst({ where: eq(creator.id, d.recipientId) });
         if (r && r.username) {

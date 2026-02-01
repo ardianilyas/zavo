@@ -146,3 +146,16 @@ export const platformRevenue = pgTable("platform_revenue", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const donationGoal = pgTable("donation_goal", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  creatorId: uuid("creator_id").references(() => creator.id).notNull(),
+  title: text("title").notNull(),
+  targetAmount: integer("target_amount").notNull(),
+  currentAmount: integer("current_amount").default(0).notNull(),
+  startDate: timestamp("start_date").defaultNow().notNull(),
+  endDate: timestamp("end_date"),
+  status: text("status", { enum: ["ACTIVE", "COMPLETED", "CANCELLED"] }).default("ACTIVE").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+

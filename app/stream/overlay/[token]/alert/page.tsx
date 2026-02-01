@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { OverlayClient } from "./overlay-client";
+import { OverlayClient } from "../overlay-client";
 import { CreatorService } from "@/features/creator/services/creator.service";
 
 interface PageProps {
@@ -8,25 +8,23 @@ interface PageProps {
   }>;
 }
 
-export default async function OverlayPage({ params }: PageProps) {
+export default async function AlertPage({ params }: PageProps) {
   const { token } = await params;
 
-  // Find creator by streamToken using Service
   const targetCreator = await CreatorService.getProfileByStreamToken(token);
 
   if (!targetCreator) {
     return notFound();
   }
 
-  // Pusher Config
   const appKey = process.env.PUSHER_KEY || process.env.NEXT_PUBLIC_PUSHER_KEY || "";
   const cluster = process.env.PUSHER_CLUSTER || process.env.NEXT_PUBLIC_PUSHER_CLUSTER || "ap1";
-
-  // Channel Name
   const channelName = `stream-${targetCreator.username}`;
 
   return (
     <OverlayClient
+      creatorId={targetCreator.id}
+      username={targetCreator.username}
       channelName={channelName}
       appKey={appKey}
       cluster={cluster}
@@ -34,6 +32,11 @@ export default async function OverlayPage({ params }: PageProps) {
         isTtsEnabled: targetCreator.isTtsEnabled ?? false,
         ttsMinAmount: targetCreator.ttsMinAmount ?? 10000,
         overlaySettings: targetCreator.overlaySettings,
+      }}
+      visibleWidgets={{
+        alerts: true,
+        goal: false,
+        leaderboard: false,
       }}
     />
   );

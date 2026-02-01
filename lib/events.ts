@@ -28,6 +28,15 @@ export interface DonationEventData {
   mediaDuration?: number;
 }
 
+export interface GoalUpdateData {
+  id: string;
+  title: string;
+  targetAmount: number;
+  currentAmount: number;
+  percentage: number;
+  status: "ACTIVE" | "COMPLETED" | "CANCELLED";
+}
+
 export class EventService {
   /**
    * Trigger a real-time event to a specific user's channel.
@@ -41,6 +50,16 @@ export class EventService {
 
     try {
       await pusherServer.trigger(channel, "donation", data);
+    } catch (error) {
+      console.error("Pusher Trigger Error:", error);
+    }
+  }
+
+  static async triggerGoalUpdate(username: string, data: GoalUpdateData) {
+    const channel = `stream-${username}`;
+    console.log(`Triggering 'goal-progress' event on channel '${channel}'`, data);
+    try {
+      await pusherServer.trigger(channel, "goal-progress", data);
     } catch (error) {
       console.error("Pusher Trigger Error:", error);
     }

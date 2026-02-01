@@ -8,7 +8,7 @@ interface PageProps {
   }>;
 }
 
-export default async function LeaderboardPage({ params }: PageProps) {
+export default async function GoalPage({ params }: PageProps) {
   const { token } = await params;
 
   const targetCreator = await CreatorService.getProfileByStreamToken(token);
@@ -35,8 +35,8 @@ export default async function LeaderboardPage({ params }: PageProps) {
       }}
       visibleWidgets={{
         alerts: false,
-        goal: false,
-        leaderboard: true,
+        goal: true,
+        leaderboard: false,
       }}
     />
   );

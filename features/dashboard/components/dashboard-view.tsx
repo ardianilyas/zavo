@@ -21,6 +21,7 @@ import { TransactionLedger } from "@/features/wallet/components/transaction-ledg
 import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
 import { AlertSettingsCard } from "@/features/dashboard/components/alert-settings-card";
 import { OverlaySettingsCard } from "@/features/dashboard/components/overlay-settings-card";
+import { GoalSettingsCard } from "@/features/dashboard/components/goal-settings-card";
 
 interface DashboardViewProps {
   creatorProfile: any;
@@ -159,6 +160,7 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
                     mediaShareMaxDuration: creatorProfile.mediaShareMaxDuration ?? 180,
                   }}
                 />
+                <GoalSettingsCard creatorId={creatorProfile.id} />
               </div>
 
               <div className="space-y-6">

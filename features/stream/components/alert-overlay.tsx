@@ -3,8 +3,10 @@
 import { DonationEventData } from "@/lib/events";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
+import { LeaderboardWidget } from "./leaderboard-widget";
+import { GoalWidget } from "./goal-widget";
 
-interface OverlayViewProps {
+interface AlertOverlayProps {
   currentAlert: DonationEventData | null;
   settings?: {
     isTtsEnabled: boolean;
@@ -16,7 +18,7 @@ interface OverlayViewProps {
 
 import YouTube from "react-youtube";
 
-export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
+export function AlertOverlay({ currentAlert, settings }: AlertOverlayProps) {
   const overlayStyles = settings?.overlaySettings || {};
 
   const backgroundColor = overlayStyles.backgroundColor || "#fae8ff";
@@ -122,7 +124,7 @@ export function OverlayView({ currentAlert, settings }: OverlayViewProps) {
 
                 {currentAlert.message && (
                   <div
-                    className="mt-2 text-[15px] font-medium leading-relaxed break-words w-full"
+                    className="mt-2 text-[15px] font-medium leading-relaxed wrap-break-word w-full"
                     style={{ color: textColor, opacity: 0.9 }}
                   >
                     {currentAlert.message}

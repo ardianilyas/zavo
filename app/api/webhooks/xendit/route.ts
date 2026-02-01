@@ -4,6 +4,7 @@ import { donation, creator, paymentLog } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { EventService } from "@/lib/events";
 import { WalletService } from "@/features/wallet/services/wallet.service";
+import { GoalService } from "@/features/goal/services/goal.service";
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,6 +57,9 @@ export async function POST(req: NextRequest) {
           .set({ status: "PAID", paidAt: new Date() })
           .where(eq(donation.id, targetDonation.id));
 
+        // Update Goal Progress
+        await GoalService.updateProgress(targetDonation.recipientId, targetDonation.amount);
+
         // Notifications
         const recipient = await db.query.creator.findFirst({ where: eq(creator.id, targetDonation.recipientId) });
         if (recipient?.username) {
@@ -107,6 +111,9 @@ export async function POST(req: NextRequest) {
       await db.update(donation)
         .set({ status: "PAID", paidAt: new Date() })
         .where(eq(donation.id, targetDonation.id));
+
+      // Update Goal Progress
+      await GoalService.updateProgress(targetDonation.recipientId, targetDonation.amount);
 
       const recipient = await db.query.creator.findFirst({ where: eq(creator.id, targetDonation.recipientId) });
       if (recipient?.username) {

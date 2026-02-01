@@ -34,12 +34,13 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
 
   const regenerateMutation = useRegenerateStreamToken();
 
-  const overlayUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/stream/overlay/${key}`;
+  const baseUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/stream/overlay/${key}`;
+  const alertUrl = `${baseUrl}/alert`;
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(overlayUrl);
+    navigator.clipboard.writeText(alertUrl);
     setCopied(true);
-    toast.success("Overlay URL copied to clipboard");
+    toast.success("Alert URL copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -52,7 +53,7 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
     });
   };
 
-  const leaderboardUrl = `${overlayUrl}/leaderboard`;
+  const leaderboardUrl = `${baseUrl}/leaderboard`;
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardCopied, setLeaderboardCopied] = useState(false);
 
@@ -61,6 +62,17 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
     setLeaderboardCopied(true);
     toast.success("Leaderboard URL copied to clipboard");
     setTimeout(() => setLeaderboardCopied(false), 2000);
+  };
+
+  const goalUrl = `${baseUrl}/goal`;
+  const [showGoal, setShowGoal] = useState(false);
+  const [goalCopied, setGoalCopied] = useState(false);
+
+  const handleCopyGoal = () => {
+    navigator.clipboard.writeText(goalUrl);
+    setGoalCopied(true);
+    toast.success("Goal URL copied to clipboard");
+    setTimeout(() => setGoalCopied(false), 2000);
   };
 
   return (
@@ -82,7 +94,7 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
             <div className="flex-1 min-w-0">
               <input
                 type={showKey ? "text" : "password"}
-                value={overlayUrl}
+                value={alertUrl}
                 readOnly
                 className="w-full bg-transparent border-none focus:outline-none text-sm font-mono text-foreground h-9"
               />
@@ -105,6 +117,39 @@ export function StreamKeyCard({ streamToken }: StreamKeyCardProps) {
           </div>
           <p className="text-[12px] text-muted-foreground">
             For Alerts, TTS, and Media Share. Add as a Browser Source (1920x1080).
+          </p>
+        </div>
+
+        {/* Goal Overlay */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium text-muted-foreground">Goal Bar URL</Label>
+          <div className="flex items-center gap-2 p-1 pl-3 bg-muted/50 border rounded-xl focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <div className="flex-1 min-w-0">
+              <input
+                type={showGoal ? "text" : "password"}
+                value={goalUrl}
+                readOnly
+                className="w-full bg-transparent border-none focus:outline-none text-sm font-mono text-foreground h-9"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowGoal(!showGoal)}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showGoal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleCopyGoal}
+              className="h-9 rounded-lg mr-1 bg-background shadow-sm hover:bg-background/80"
+            >
+              {goalCopied ? <Check className="h-3.5 w-3.5 text-green-600" /> : <Copy className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
+          <p className="text-[12px] text-muted-foreground">
+            Displays Donation Goal Progress. Add as a separate Browser Source.
           </p>
         </div>
 
