@@ -14,7 +14,6 @@ export const donationRouter = router({
       z.object({
         recipientUsername: z.string(),
         donorName: z.string().min(1, "Name is required"),
-        donorEmail: z.string().email().optional().or(z.literal("")),
         amount: z.number().min(10000, "Minimum donation is Rp 10.000"),
         message: z.string().max(255).optional(),
         mediaUrl: z.string().optional(),
@@ -33,6 +32,7 @@ export const donationRouter = router({
 
       // Check for authenticated user to link donation
       const donorId = ctx.session?.user?.id || null;
+      const donorEmail = ctx.session?.user?.email || null;
 
       const isDev = process.env.NODE_ENV === "development";
       const referenceId = `zavo-${randomUUID()}`;
@@ -76,7 +76,7 @@ export const donationRouter = router({
           recipientId: recipient.id, // Stores Creator ID
           donorId: donorId,
           donorName: input.donorName,
-          donorEmail: input.donorEmail || null,
+          donorEmail: donorEmail,
           amount: input.amount,
           message: input.message,
           status: "PENDING",
