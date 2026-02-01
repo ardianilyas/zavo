@@ -30,6 +30,11 @@ export const creator = pgTable("creator", {
   isMediaShareEnabled: boolean("is_media_share_enabled").default(false).notNull(),
   mediaShareCostPerSecond: integer("media_share_cost_per_second").default(1000).notNull(),
   mediaShareMaxDuration: integer("media_share_max_duration").default(180).notNull(),
+  // Bank Details
+  bankCode: text("bank_code"),
+  accountNumber: text("account_number"),
+  accountName: text("account_name"),
+  bankDetailsUpdatedAt: timestamp("bank_details_updated_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

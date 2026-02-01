@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -18,9 +18,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Landmark } from "lucide-react";
 import { createWithdrawalSchema, CreateWithdrawalInput } from "../schema/wallet.schema";
 import { useWithdraw } from "../hooks/use-wallet";
@@ -32,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { api } from "@/trpc/client";
 
 interface WithdrawalDialogProps {
   children: React.ReactNode;
@@ -42,6 +45,8 @@ interface WithdrawalDialogProps {
 
 export function WithdrawalDialog({ children, creatorId, currentBalance, onSuccess }: WithdrawalDialogProps) {
   const [open, setOpen] = useState(false);
+  const { data: profiles } = api.creator.myProfiles.useQuery();
+  const currentProfile = profiles?.find(p => p.id === creatorId);
 
   const form = useForm<CreateWithdrawalInput>({
     resolver: zodResolver(createWithdrawalSchema) as any,
@@ -51,8 +56,33 @@ export function WithdrawalDialog({ children, creatorId, currentBalance, onSucces
       accountNumber: "",
       accountName: "",
       notes: "",
+      saveDetails: false,
     },
   });
+
+  // Prefill form if profile has saved details
+  useEffect(() => {
+    if (currentProfile?.bankCode) {
+      // Only set if user hasn't typed anything (or on initial load)
+      // Check if values are still default/empty to avoid overwriting user input
+      const values = form.getValues();
+      if (!values.accountNumber && !values.accountName) {
+        form.reset({
+          amount: values.amount,
+          // @ts-ignore
+          bankCode: currentProfile.bankCode,
+          accountNumber: currentProfile.accountNumber || "",
+          accountName: currentProfile.accountName || "",
+          notes: values.notes,
+          saveDetails: true // Auto-check if we found details? Or maybe keep unchecked. Let's keep it unchecked or true if they want to update? 
+          // Actually, if they already saved, maybe they want to keep it saved.
+          // But strict logic: if found, prefill.
+        });
+        // Ensure bankCode is set correctly even if not in default generic list (though it should be)
+        form.setValue("bankCode", currentProfile.bankCode as any);
+      }
+    }
+  }, [currentProfile, form]);
 
   const { mutate, isPending } = useWithdraw(() => {
     setOpen(false);
@@ -147,7 +177,7 @@ export function WithdrawalDialog({ children, creatorId, currentBalance, onSucces
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Bank / E-Wallet</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select Bank" />
@@ -191,6 +221,30 @@ export function WithdrawalDialog({ children, creatorId, currentBalance, onSucces
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="saveDetails"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 shadow-sm">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>
+                      Save details
+                    </FormLabel>
+                    <FormDescription>
+                      Save these bank details for future withdrawals.
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" className="w-full" disabled={isPending}>
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Request Withdrawal

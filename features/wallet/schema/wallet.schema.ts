@@ -9,6 +9,7 @@ export const createWithdrawalSchema = z.object({
   accountNumber: z.string().min(5, "Account number is required"),
   accountName: z.string().min(2, "Account holder name is required"),
   notes: z.string().optional(),
+  saveDetails: z.boolean().optional(),
 });
 
 export type CreateWithdrawalInput = z.infer<typeof createWithdrawalSchema>;

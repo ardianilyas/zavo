@@ -58,6 +58,39 @@ export const payoutRouter = router({
           notes: input.notes,
         }).returning();
 
+        // Save bank details to profile if requested
+        if (input.saveDetails) {
+          const hasDetailsChanged =
+            targetCreator.bankCode !== input.bankCode ||
+            targetCreator.accountNumber !== input.accountNumber ||
+            targetCreator.accountName !== input.accountName;
+
+          if (hasDetailsChanged) {
+            const now = new Date();
+            const lastUpdated = targetCreator.bankDetailsUpdatedAt;
+
+            if (lastUpdated) {
+              const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+              if (lastUpdated > thirtyDaysAgo) {
+                const nextUpdateDate = new Date(lastUpdated.getTime() + 30 * 24 * 60 * 60 * 1000);
+                throw new TRPCError({
+                  code: "FORBIDDEN",
+                  message: `Bank details can only be updated once every 30 days. Next update allowed: ${nextUpdateDate.toLocaleDateString("id-ID")}`
+                });
+              }
+            }
+
+            await tx.update(creator)
+              .set({
+                bankCode: input.bankCode,
+                accountNumber: input.accountNumber,
+                accountName: input.accountName,
+                bankDetailsUpdatedAt: new Date(),
+              })
+              .where(eq(creator.id, input.creatorId));
+          }
+        }
+
         // NOTE: We do NOT debit here anymore. Debit happens on Webhook Success.
 
 
