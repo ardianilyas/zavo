@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Play, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useSendTestAlert } from "../hooks/use-send-test-alert";
+import { useReplayAlert } from "../hooks/use-replay-alert";
 import { toast } from "sonner";
 
 interface Donation {
@@ -46,16 +47,13 @@ function getRelativeTime(date: Date): string {
 }
 
 export function RecentDonationsFeed({ creatorId, donations }: RecentDonationsFeedProps) {
-  const { mutate: sendTestAlert, isPending } = useSendTestAlert();
+  const { mutate: sendTestAlert, isPending: isSendingTest } = useSendTestAlert();
+  const { mutate: replayAlert, isPending: isReplaying } = useReplayAlert();
 
   const handleReplay = (donation: Donation) => {
-    sendTestAlert({
-      creatorId,
-      donorName: donation.donorName,
-      amount: donation.amount,
-      message: donation.message || undefined,
+    replayAlert({
+      donationId: donation.id,
     });
-    toast.success("Alert replayed!");
   };
 
   return (
@@ -134,7 +132,7 @@ export function RecentDonationsFeed({ creatorId, donations }: RecentDonationsFee
                     variant="ghost"
                     size="sm"
                     onClick={() => handleReplay(donation)}
-                    disabled={isPending}
+                    disabled={isReplaying}
                     className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Play className="h-3 w-3 mr-1" />
