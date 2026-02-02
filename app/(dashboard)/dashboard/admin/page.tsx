@@ -1,5 +1,6 @@
 import { api } from "@/trpc/server";
 import { AdminStatsOverview } from "@/features/admin/components/admin-stats-overview";
+import { RevenueChart } from "@/features/admin/components/revenue-chart";
 
 export default async function AdminPage() {
   const stats = await api.admin.getAnalytics();
@@ -7,11 +8,13 @@ export default async function AdminPage() {
   return (
     <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col space-y-2">
-         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-         <p className="text-muted-foreground">Platform analytics and operational status.</p>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Platform analytics and operational status.</p>
       </div>
 
       <AdminStatsOverview stats={stats} />
+
+      <RevenueChart data={stats.chart} />
     </div>
   );
 }
