@@ -1,12 +1,11 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Play, ArrowRight } from "lucide-react";
+import { Heart, Play, ArrowRight, DollarSign } from "lucide-react";
 import Link from "next/link";
-import { useSendTestAlert } from "../hooks/use-send-test-alert";
 import { useReplayAlert } from "../hooks/use-replay-alert";
-import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Donation {
   id: string;
@@ -47,7 +46,6 @@ function getRelativeTime(date: Date): string {
 }
 
 export function RecentDonationsFeed({ creatorId, donations }: RecentDonationsFeedProps) {
-  const { mutate: sendTestAlert, isPending: isSendingTest } = useSendTestAlert();
   const { mutate: replayAlert, isPending: isReplaying } = useReplayAlert();
 
   const handleReplay = (donation: Donation) => {
@@ -57,91 +55,90 @@ export function RecentDonationsFeed({ creatorId, donations }: RecentDonationsFee
   };
 
   return (
-    <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardHeader className="pb-4">
+    <Card className="h-full border-none shadow-none bg-transparent">
+      <CardHeader className="px-0 pt-0 pb-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-rose-50 dark:bg-rose-950/30 rounded-lg">
-              <Heart className="h-5 w-5 text-rose-600 dark:text-rose-400" />
-            </div>
-            <div>
-              <CardTitle className="text-xl">Recent Donations</CardTitle>
-              <CardDescription className="mt-0.5">
-                Latest support from your community
-              </CardDescription>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" asChild>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            Recent Donations
+          </CardTitle>
+          <Button variant="link" size="sm" asChild className="text-primary p-0 h-auto font-normal">
             <Link href="/dashboard/donations" className="flex items-center gap-1">
-              View All
+              View all
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-0">
         {donations.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="p-4 bg-muted/50 rounded-full mb-4">
-              <Heart className="h-8 w-8 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center py-12 text-center rounded-xl bg-muted/30 border border-dashed">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/30 rounded-full mb-3">
+              <Heart className="h-6 w-6 text-rose-500" />
             </div>
-            <h3 className="font-semibold text-lg mb-1">No donations yet</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Share your donation page with your community to start receiving support!
+            <p className="text-sm font-medium">No donations yet</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
+              Share your page to start receiving support!
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {donations.slice(0, 10).map((donation) => (
-              <div
-                key={donation.id}
-                className="group flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-muted/30 transition-all duration-200"
-              >
-                {/* Avatar */}
-                <div className="shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-rose-400 to-pink-400 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-                  {getInitials(donation.donorName)}
-                </div>
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-4">
+              {donations.slice(0, 10).map((donation) => (
+                <div
+                  key={donation.id}
+                  className="group relative flex items-start gap-3 p-3 rounded-xl bg-card border shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <div className="shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-rose-100 to-teal-100 dark:from-rose-950/50 dark:to-teal-950/50 flex items-center justify-center text-xs font-bold ring-2 ring-background">
+                      {getInitials(donation.donorName)}
+                    </div>
+                  </div>
 
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-sm">{donation.donorName}</span>
-                      <span className="text-xs text-muted-foreground">
+                  <div className="flex-1 min-w-0 pt-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-medium truncate leading-none">
+                        {donation.donorName}
+                      </p>
+                      <span className="text-xs text-muted-foreground shrink-0 tabular-nums">
                         {getRelativeTime(donation.createdAt)}
                       </span>
                     </div>
-                    <span className="font-bold text-sm text-rose-600 dark:text-rose-400 shrink-0">
-                      {new Intl.NumberFormat("id-ID", {
-                        style: "currency",
-                        currency: "IDR",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
-                      }).format(donation.amount)}
-                    </span>
+
+                    <div className="flex items-center gap-1.5 mt-1.5 text-rose-600 dark:text-rose-400 font-semibold text-sm">
+                      <DollarSign className="h-3.5 w-3.5" />
+                      <span suppressHydrationWarning>
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "decimal",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(donation.amount)}
+                      </span>
+                    </div>
+
+                    {donation.message && (
+                      <div className="mt-2 text-xs text-muted-foreground bg-muted/50 rounded-md p-2 relative">
+                        <span className="absolute left-2 -top-1 w-2 h-2 bg-muted/50 rotate-45 transform origin-center"></span>
+                        <p className="line-clamp-2 italic relative z-10">"{donation.message}"</p>
+                      </div>
+                    )}
+
+                    <div className="mt-2 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full hover:bg-rose-100 dark:hover:bg-rose-900/30 text-rose-600"
+                        onClick={() => handleReplay(donation)}
+                        disabled={isReplaying}
+                        title="Replay Alert"
+                      >
+                        <Play className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-
-                  {donation.message && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
-                      "{donation.message}"
-                    </p>
-                  )}
-
-                  {/* Replay button - shows on hover */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleReplay(donation)}
-                    disabled={isReplaying}
-                    className="h-7 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <Play className="h-3 w-3 mr-1" />
-                    Replay Alert
-                  </Button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>

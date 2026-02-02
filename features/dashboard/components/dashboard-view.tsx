@@ -127,8 +127,8 @@ export function DashboardView({ creatorProfile, stats, chartData = [], recentDon
             </div>
 
 
-            <div className="grid gap-6 grid-cols-1">
-              <Card className="backdrop-blur-md bg-card/50 border-primary/10">
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
+              <Card className="backdrop-blur-md bg-card/50 border-primary/10 lg:col-span-2">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-primary" />
@@ -143,7 +143,7 @@ export function DashboardView({ creatorProfile, stats, chartData = [], recentDon
                 </CardContent>
               </Card>
 
-              <div className="w-full">
+              <div className="w-full lg:col-span-1">
                 <RecentDonationsFeed creatorId={creatorProfile.id} donations={recentDonations} />
               </div>
             </div>
