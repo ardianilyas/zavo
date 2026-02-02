@@ -55,7 +55,7 @@ export function RecentDonationsFeed({ creatorId, donations }: RecentDonationsFee
   };
 
   return (
-    <Card className="h-full border-none shadow-none bg-transparent">
+    <Card className="h-full p-6">
       <CardHeader className="px-0 pt-0 pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
