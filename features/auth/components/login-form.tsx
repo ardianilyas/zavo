@@ -47,7 +47,8 @@ export default function LoginForm() {
 
     const { data } = await authService.getSession();
     if (data?.user) {
-      setUser(data.user.name, data.user.email);
+      // @ts-ignore - Role is added via config match
+      setUser(data.user.name, data.user.email, data.user.role || "user");
     }
 
     toast.success("Welcome back!", {

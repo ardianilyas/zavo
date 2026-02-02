@@ -14,10 +14,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useUserStore } from "@/store/use-user-store";
 
 export function DashboardHeader({ profiles = [] }: DashboardHeaderProps) {
   const searchParams = useSearchParams();
   const profileId = searchParams.get("profileId");
+  const role = useUserStore((state) => state.role);
 
   const getHref = (path: string) => {
     return profileId ? `${path}?profileId=${profileId}` : path;
@@ -82,6 +84,11 @@ export function DashboardHeader({ profiles = [] }: DashboardHeaderProps) {
                   <MobileLink href="/creators">Creators</MobileLink>
                   <MobileLink href={getHref("/dashboard/analytics")}>Analytics</MobileLink>
                   <MobileLink href={getHref("/dashboard/settings")}>Settings</MobileLink>
+                  {role === "admin" && (
+                    <MobileLink href="/dashboard/admin">
+                      <span className="text-rose-600">Admin</span>
+                    </MobileLink>
+                  )}
                 </div>
               </div>
             </SheetContent>

@@ -25,6 +25,7 @@ const links = [
 
 export default function Navbar() {
   const user = useUserStore((state) => state.name);
+  const role = useUserStore((state) => state.role);
   const clearUser = useUserStore((state) => state.clearUser);
   const [isOpen, setIsOpen] = useState(false);
 

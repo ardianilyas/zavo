@@ -13,6 +13,7 @@ export const user = pgTable("user", {
   username: text("username").unique(),
   bio: text("bio"),
   streamToken: text("stream_token").unique(),
+  role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
 });
 
 export const creator = pgTable("creator", {

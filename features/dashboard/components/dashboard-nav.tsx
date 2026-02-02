@@ -12,10 +12,12 @@ import {
   NavigationMenuList,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { useUserStore } from "@/store/use-user-store";
 
 export function DashboardNav() {
   const searchParams = useSearchParams();
   const profileId = searchParams.get("profileId");
+  const role = useUserStore((state) => state.role);
 
   const getHref = (path: string) => {
     return profileId ? `${path}?profileId=${profileId}` : path;
@@ -66,6 +68,16 @@ export function DashboardNav() {
             </Link>
           </NavigationMenuLink>
         </NavigationMenuItem>
+
+        {role === "admin" && (
+          <NavigationMenuItem>
+            <NavigationMenuLink asChild>
+              <Link href="/dashboard/admin" className={cn(navigationMenuTriggerStyle(), "text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30")}>
+                Admin
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+        )}
       </NavigationMenuList>
     </NavigationMenu>
   );

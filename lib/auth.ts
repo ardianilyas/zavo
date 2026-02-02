@@ -21,6 +21,12 @@ export const auth = betterAuth({
       streamToken: {
         type: "string",
       },
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "user",
+        input: false, // Don't allow user to set this
+      },
     }
   }
 });
