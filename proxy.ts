@@ -102,6 +102,28 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Ban/Suspension check
+  if (isAuthenticated && session?.user) {
+    const user = session.user as any;
+    const isBanned = user.banned === true;
+    const isSuspended = user.suspendedUntil && new Date(user.suspendedUntil) > new Date();
+
+    if (isBanned || isSuspended) {
+      if (pathname !== "/banned" && !pathname.startsWith("/api/auth")) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/banned";
+        return NextResponse.redirect(url);
+      }
+    } else {
+      // Prevent non-banned users from staying on the /banned page
+      if (pathname === "/banned") {
+        const url = request.nextUrl.clone();
+        url.pathname = "/dashboard";
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
   return NextResponse.next();
 }
 

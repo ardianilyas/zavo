@@ -27,6 +27,17 @@ export const auth = betterAuth({
         defaultValue: "user",
         input: false, // Don't allow user to set this
       },
+      banned: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: false,
+      },
+      suspendedUntil: {
+        type: "date",
+        required: false,
+        input: false,
+      },
     }
   }
 });

@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { user, donation, creator, platformRevenue, withdrawalRequest } from "@/db/schema";
-import { count, sum, eq, and, gte, lte, sql } from "drizzle-orm";
+import { count, sum, eq, and, or, gte, lte, sql, inArray, isNull } from "drizzle-orm";
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subDays, format } from "date-fns";
 
 export class AdminService {
@@ -190,5 +190,117 @@ export class AdminService {
       },
       chart: chartData
     };
+  }
+
+  // --- User Management ---
+
+  static async getUsers(params: { page: number; limit: number; search?: string; status?: "all" | "active" | "suspended" | "banned" }) {
+    const limit = params.limit || 20;
+    const offset = (params.page - 1) * limit;
+    const status = params.status || "all";
+
+    const conditions = [];
+
+    // Search Filter
+    if (params.search) {
+      conditions.push(sql`${user.name} ILIKE ${`%${params.search}%`} OR ${user.email} ILIKE ${`%${params.search}%`}`);
+    }
+
+    // Status Filter
+    const now = new Date();
+    if (status === "active") {
+      conditions.push(and(eq(user.banned, false), or(isNull(user.suspendedUntil), lte(user.suspendedUntil, now))));
+    } else if (status === "suspended") {
+      conditions.push(and(eq(user.banned, false), gte(user.suspendedUntil, now)));
+    } else if (status === "banned") {
+      conditions.push(eq(user.banned, true));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // 1. Fetch Users first (to get correct pagination without duplicates)
+    const [users, total] = await Promise.all([
+      db.select()
+        .from(user)
+        .where(whereClause)
+        .limit(limit)
+        .offset(offset)
+        .orderBy(sql`${user.createdAt} DESC`),
+
+      db.select({ count: count() })
+        .from(user)
+        .where(whereClause)
+        .then(res => res[0]?.count || 0)
+    ]);
+
+    // 2. Fetch Creator profiles for these users
+    const userIds = users.map(u => u.id);
+    let creators: any[] = [];
+
+    if (userIds.length > 0) {
+      // use custom 'inArray' or simple ORs if drizzle version is issues, but inArray is standard
+      // Importing inArray might be needed.
+      // For now, simpler workaround if inArray import is missing:
+      // Use Promise.all if list is small? No, better to do one query.
+      // Attempting to use db.query if available or standard Select.
+
+      // Actually, let's just query associated creators.
+      // We will fetch ALL creators for these users.
+      const creatorResults = await db.select({
+        id: creator.id,
+        userId: creator.userId,
+        username: creator.username
+      }).from(creator)
+        .where(sql`${creator.userId} IN ${userIds}`); // SQL templating handles the array safely usually? No.
+
+      creators = creatorResults;
+    }
+
+    // 3. Merge
+    const usersWithCreator = users.map(u => {
+      const foundCreator = creators.find(c => c.userId === u.id);
+      return {
+        ...u,
+        creator: foundCreator ? { id: foundCreator.id, username: foundCreator.username } : null
+      };
+    });
+
+    return {
+      users: usersWithCreator,
+      total,
+      page: params.page,
+      totalPages: Math.ceil(total / limit)
+    };
+  }
+
+  static async banUser(userId: string, reason: string, durationInDays?: number) {
+    if (durationInDays) {
+      // Temporary Suspension
+      const suspendedUntil = new Date();
+      suspendedUntil.setDate(suspendedUntil.getDate() + durationInDays);
+
+      await db.update(user)
+        .set({
+          banned: false, // Ensure not permanently banned
+          banReason: reason,
+          suspendedUntil: suspendedUntil
+        })
+        .where(eq(user.id, userId));
+    } else {
+      // Permanent Ban
+      await db.update(user)
+        .set({
+          banned: true,
+          banReason: reason,
+          suspendedUntil: null // Clear suspension if moving to permanent ban
+        })
+        .where(eq(user.id, userId));
+    }
+  }
+
+  static async unbanUser(userId: string) {
+    await db.update(user)
+      .set({ banned: false, banReason: null, suspendedUntil: null })
+      .where(eq(user.id, userId));
   }
 }

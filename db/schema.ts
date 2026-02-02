@@ -14,6 +14,9 @@ export const user = pgTable("user", {
   bio: text("bio"),
   streamToken: text("stream_token").unique(),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  banned: boolean("banned").default(false).notNull(),
+  banReason: text("ban_reason"),
+  suspendedUntil: timestamp("suspended_until"),
 });
 
 export const creator = pgTable("creator", {
