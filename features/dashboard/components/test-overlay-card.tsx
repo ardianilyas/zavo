@@ -22,18 +22,25 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Test Overlay</CardTitle>
-        <CardDescription>
-          Send a dummy donation alert to your overlay to verify the design and sound.
-        </CardDescription>
+    <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+            <BellRing className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Test Overlay</CardTitle>
+            <CardDescription className="mt-0.5">
+              Send a dummy donation alert to your overlay to verify the design and sound
+            </CardDescription>
+          </div>
+        </div>
       </CardHeader>
-      <CardContent className="flex flex-row flex-wrap gap-3">
+      <CardContent className="flex flex-col gap-3">
         <Button
           onClick={() => mutate({ creatorId })}
           disabled={isPending}
-          className="justify-start"
+          className="w-full sm:w-auto justify-start"
         >
           {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -46,7 +53,7 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
           onClick={handleSpam}
           disabled={isPending}
           variant="secondary"
-          className="justify-start"
+          className="w-full sm:w-auto justify-start"
         >
           <Layers className="mr-2 h-4 w-4" />
           Test Queue (Send 3x)
@@ -59,7 +66,7 @@ export function TestOverlayCard({ creatorId }: { creatorId: string }) {
           })}
           disabled={isPending}
           variant="outline"
-          className="justify-start border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/10"
+          className="w-full sm:w-auto justify-start border-red-200 hover:bg-red-50 hover:text-red-600 dark:border-red-900/30 dark:hover:bg-red-900/10"
         >
           <Youtube className="mr-2 h-4 w-4 text-red-500" />
           Test Media Share

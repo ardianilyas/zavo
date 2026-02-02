@@ -104,20 +104,24 @@ export function OverlaySettingsCard({ creatorId, initialSettings }: OverlaySetti
   };
 
   return (
-    <Card className="shadow-sm border-border">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Palette className="h-5 w-5 text-pink-500" />
-          <CardTitle className="text-lg">Overlay Style</CardTitle>
+    <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-pink-50 dark:bg-pink-950/30 rounded-lg">
+            <Palette className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Overlay Style</CardTitle>
+            <CardDescription className="mt-0.5">
+              Customize the colors and animation of your donation alerts
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Customize the colors and animation of your donation alerts.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
 
         {/* Live Preview */}
-        <div className="rounded-xl border bg-muted/50 p-6 flex flex-col items-center justify-center min-h-[300px] gap-4">
+        <div className="rounded-lg border bg-gradient-to-br from-muted/30 via-muted/10 to-transparent p-6 backdrop-blur-sm flex flex-col items-center justify-center min-h-[300px] gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <Settings2 className="h-4 w-4" />
             <span>Live Preview</span>
@@ -138,11 +142,10 @@ export function OverlaySettingsCard({ creatorId, initialSettings }: OverlaySetti
                       { opacity: 1 }
                 }
                 exit={{ opacity: 0 }}
-                className="w-full p-6 rounded-2xl shadow-xl text-center border overflow-hidden"
+                className="w-full p-6 rounded-xl shadow-lg text-center border-2 overflow-hidden"
                 style={{
                   backgroundColor: backgroundColor,
                   borderColor: borderColor,
-                  borderWidth: "1px",
                 }}
               >
                 <div className="font-bold text-lg mb-1" style={{ color: textColor }}>
@@ -211,9 +214,9 @@ export function OverlaySettingsCard({ creatorId, initialSettings }: OverlaySetti
 
         </div>
 
-        <div className="flex justify-end pt-4 border-t mt-4">
-          <Button onClick={handleSave} disabled={updateSettings.isPending}>
-            Save Changes
+        <div className="flex justify-end pt-3 border-t">
+          <Button onClick={handleSave} disabled={updateSettings.isPending} className="min-w-32">
+            {updateSettings.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 

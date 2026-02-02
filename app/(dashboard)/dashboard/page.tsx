@@ -31,5 +31,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const chartData = creatorProfile ? await CreatorService.getRevenueChartData(creatorProfile.id) : [];
 
   // 2. Render View
-  return <DashboardView creatorProfile={creatorProfile} stats={stats} chartData={chartData} />;
+  const recentDonations = creatorProfile ? await CreatorService.getRecentDonations(creatorProfile.id, 10) : [];
+
+  // 2. Render View
+  return <DashboardView creatorProfile={creatorProfile} stats={stats} chartData={chartData} recentDonations={recentDonations} />;
 }

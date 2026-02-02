@@ -110,27 +110,31 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
   };
 
   return (
-    <Card className="shadow-sm border-border">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-indigo-500" />
-          <CardTitle className="text-lg">Alert Configuration</CardTitle>
+    <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-indigo-50 dark:bg-indigo-950/30 rounded-lg">
+            <Megaphone className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Alert Configuration</CardTitle>
+            <CardDescription className="mt-0.5">
+              Customize how your donation alerts appear and sound
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Customize how your donation alerts appear and sound.
-        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-5">
 
         {/* TTS Section */}
-        <div className="rounded-xl border bg-muted/30 p-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
+        <div className="rounded-lg border bg-gradient-to-br from-indigo-50/50 to-transparent dark:from-indigo-950/20 dark:to-transparent p-4 transition-all hover:border-indigo-200 dark:hover:border-indigo-900/50">
           <div className="flex items-center justify-between space-x-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/40 rounded-lg">
                 <Volume2 className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div className="flex flex-col space-y-0.5">
-                <Label htmlFor="tts-mode" className="text-base font-semibold">Text-to-Speech</Label>
+                <Label htmlFor="tts-mode" className="text-base font-semibold cursor-pointer">Text-to-Speech</Label>
                 <span className="text-sm text-muted-foreground">
                   Read donor messages out loud
                 </span>
@@ -147,8 +151,8 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
           {isTtsEnabled && (
             <div className="mt-4 pl-[52px] animate-in slide-in-from-top-2 fade-in duration-300">
               <div className="flex flex-col gap-2 max-w-sm">
-                <Label htmlFor="min-amount" className="text-sm text-muted-foreground">
-                  Min. Amount (IDR)
+                <Label htmlFor="min-amount" className="text-sm font-medium">
+                  Minimum Amount (IDR)
                 </Label>
                 <div className="flex items-center gap-2">
                   <Input
@@ -158,7 +162,7 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     onChange={(e) => setAmountDraft(e.target.value)}
                     onBlur={validateAmount}
                     onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-                    className="h-9"
+                    className="h-10"
                     disabled={updateSettings.isPending}
                   />
                 </div>
@@ -168,14 +172,14 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
         </div>
 
         {/* Media Share Section */}
-        <div className="rounded-xl border bg-muted/30 p-4 transition-all hover:border-pink-200 dark:hover:border-pink-900/50">
+        <div className="rounded-lg border bg-gradient-to-br from-pink-50/50 to-transparent dark:from-pink-950/20 dark:to-transparent p-4 transition-all hover:border-pink-200 dark:hover:border-pink-900/50">
           <div className="flex items-center justify-between space-x-2">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+              <div className="p-2.5 bg-pink-100 dark:bg-pink-900/40 rounded-lg">
                 <Youtube className="h-5 w-5 text-pink-600 dark:text-pink-400" />
               </div>
               <div className="flex flex-col space-y-0.5">
-                <Label htmlFor="media-share-mode" className="text-base font-semibold">Media Share</Label>
+                <Label htmlFor="media-share-mode" className="text-base font-semibold cursor-pointer">Media Share</Label>
                 <span className="text-sm text-muted-foreground">
                   Let viewers request YouTube videos
                 </span>
@@ -190,7 +194,7 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
           </div>
 
           {isMediaShareEnabled && (
-            <div className="mt-6 border-t pt-4 animate-in slide-in-from-top-2 fade-in duration-300">
+            <div className="mt-5 border-t pt-4 animate-in slide-in-from-top-2 fade-in duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex flex-col space-y-2">
                   <Label htmlFor="cost-per-second" className="text-sm font-medium">
@@ -204,8 +208,9 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     onChange={(e) => setCostPerSecondDraft(e.target.value)}
                     onBlur={validateMediaShareSettings}
                     disabled={updateSettings.isPending}
+                    className="h-10"
                   />
-                  <p className="text-[10px] text-muted-foreground">Min. Rp 1.000</p>
+                  <p className="text-xs text-muted-foreground">Min. Rp 1.000</p>
                 </div>
 
                 <div className="flex flex-col space-y-2">
@@ -220,17 +225,18 @@ export function AlertSettingsCard({ creatorId, initialSettings }: AlertSettingsC
                     onChange={(e) => setMaxDurationDraft(e.target.value)}
                     onBlur={validateMediaShareSettings}
                     disabled={updateSettings.isPending}
+                    className="h-10"
                   />
-                  <p className="text-[10px] text-muted-foreground">Max. 180s</p>
+                  <p className="text-xs text-muted-foreground">Max. 180s</p>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        <div className="flex justify-end pt-4 border-t">
-          <Button onClick={handleSave} disabled={updateSettings.isPending}>
-            Save Changes
+        <div className="flex justify-end pt-3 border-t">
+          <Button onClick={handleSave} disabled={updateSettings.isPending} className="min-w-32">
+            {updateSettings.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 

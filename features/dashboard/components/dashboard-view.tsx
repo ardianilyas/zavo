@@ -16,7 +16,7 @@ import { TestOverlayCard } from "@/features/dashboard/components/test-overlay-ca
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { WithdrawalDialog } from "@/features/wallet/components/withdrawal-dialog";
-import { TransactionLedger } from "@/features/wallet/components/transaction-ledger";
+import { RecentDonationsFeed } from "@/features/dashboard/components/recent-donations-feed";
 
 import { RevenueChart } from "@/features/dashboard/components/revenue-chart";
 import { AlertSettingsCard } from "@/features/dashboard/components/alert-settings-card";
@@ -39,9 +39,10 @@ interface DashboardViewProps {
     date: string;
     revenue: number;
   }[];
+  recentDonations?: any[];
 }
 
-export function DashboardView({ creatorProfile, stats, chartData = [] }: DashboardViewProps) {
+export function DashboardView({ creatorProfile, stats, chartData = [], recentDonations = [] }: DashboardViewProps) {
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col space-y-2">
@@ -143,23 +144,22 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
               </Card>
 
               <div className="w-full">
-                <TransactionLedger creatorId={creatorProfile.id} />
+                <RecentDonationsFeed creatorId={creatorProfile.id} donations={recentDonations} />
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="stream" className="space-y-8">
-            {/* Overlay URLs - Full Width */}
-            <div>
+          <TabsContent value="stream" className="space-y-10">
+            {/* Overlay URLs */}
+            <div className="space-y-4">
               <StreamKeyCard streamToken={creatorProfile.streamToken || null} />
             </div>
 
             {/* Feature Settings Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Feature Settings</h3>
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Feature Settings</h3>
+                <p className="text-sm text-muted-foreground">Configure alerts, TTS, media share, and goals</p>
               </div>
               <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 <AlertSettingsCard
@@ -177,11 +177,10 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
             </div>
 
             {/* Overlay Customization Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Overlay Customization</h3>
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Overlay Customization</h3>
+                <p className="text-sm text-muted-foreground">Personalize the appearance of your stream overlays</p>
               </div>
               <div className="grid gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
                 <OverlaySettingsCard
@@ -200,11 +199,10 @@ export function DashboardView({ creatorProfile, stats, chartData = [] }: Dashboa
             </div>
 
             {/* Test Overlay */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 px-1">
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Testing</h3>
-                <div className="h-px flex-1 bg-linear-to-r from-transparent via-border to-transparent" />
+            <div className="space-y-5">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground mb-1">Testing</h3>
+                <p className="text-sm text-muted-foreground">Test your overlay configuration before going live</p>
               </div>
               <div className="max-w-xl">
                 <TestOverlayCard creatorId={creatorProfile.id} />

@@ -111,20 +111,24 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
   ];
 
   return (
-    <Card className="shadow-sm border-border">
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Crown className="h-5 w-5 text-primary" />
-          <CardTitle className="text-lg">Leaderboard Style</CardTitle>
+    <Card className="border shadow-sm hover:shadow-md transition-shadow duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 bg-amber-50 dark:bg-amber-950/30 rounded-lg">
+            <Crown className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <div>
+            <CardTitle className="text-xl">Leaderboard Style</CardTitle>
+            <CardDescription className="mt-0.5">
+              Customize the appearance of your leaderboard widget
+            </CardDescription>
+          </div>
         </div>
-        <CardDescription>
-          Customize the appearance of your leaderboard widget.
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
 
         {/* Live Preview */}
-        <div className="rounded-xl border bg-muted/50 p-6 flex flex-col items-center justify-center min-h-[280px] gap-4">
+        <div className="rounded-lg border bg-gradient-to-br from-muted/30 via-muted/10 to-transparent p-6 backdrop-blur-sm flex flex-col items-center justify-center min-h-[280px] gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
             <Settings2 className="h-4 w-4" />
             <span>Live Preview</span>
@@ -266,9 +270,9 @@ export function LeaderboardOverlaySettingsCard({ creatorId, initialSettings }: L
 
         </div>
 
-        <div className="flex justify-end pt-4 border-t mt-4">
-          <Button onClick={handleSave} disabled={updateSettings.isPending}>
-            Save Changes
+        <div className="flex justify-end pt-3 border-t">
+          <Button onClick={handleSave} disabled={updateSettings.isPending} className="min-w-32">
+            {updateSettings.isPending ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 

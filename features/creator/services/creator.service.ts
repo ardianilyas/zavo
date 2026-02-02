@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { creator, donation, ledgerTransaction } from "@/db/schema";
-import { eq, sum, count, and, gte, sql, lte } from "drizzle-orm";
+import { eq, sum, count, and, gte, sql, lte, desc } from "drizzle-orm";
 import { subMonths, format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
 
 export class CreatorService {
@@ -177,5 +177,16 @@ export class CreatorService {
       };
     });
   }
-}
 
+
+  static async getRecentDonations(creatorId: string, limit: number = 10) {
+    return await db.query.donation.findMany({
+      where: and(
+        eq(donation.recipientId, creatorId),
+        eq(donation.status, "PAID")
+      ),
+      orderBy: (donations, { desc }) =>  [desc(donations.createdAt)],
+      limit,
+    });
+  }
+}
