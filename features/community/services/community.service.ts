@@ -176,6 +176,19 @@ export class CommunityService {
     // Community I own
     const owned = await db.query.community.findFirst({ where: eq(community.ownerId, c.id) });
 
+    // Get member count if owned
+    let ownedWithCount = null;
+    if (owned) {
+      const [result] = await db.select({ count: count() })
+        .from(communityMember)
+        .where(eq(communityMember.communityId, owned.id));
+
+      ownedWithCount = {
+        ...owned,
+        memberCount: result?.count || 0
+      };
+    }
+
     // Communities I joined
     const joined = await db.select({
       community: community
@@ -185,8 +198,68 @@ export class CommunityService {
       .where(eq(communityMember.creatorId, c.id));
 
     return {
-      owned,
+      owned: ownedWithCount,
       joined: joined.map(j => j.community).filter(Boolean)
     };
+  }
+
+  static async updateCommunity(userId: string, communityId: string, data: { name?: string; description?: string; slug?: string }) {
+    const owner = await db.query.creator.findFirst({
+      where: eq(creator.userId, userId)
+    });
+
+    if (!owner) throw new TRPCError({ code: "BAD_REQUEST", message: "Not a creator" });
+
+    const comm = await db.query.community.findFirst({
+      where: eq(community.id, communityId)
+    });
+
+    if (!comm) throw new TRPCError({ code: "NOT_FOUND", message: "Community not found" });
+
+    if (comm.ownerId !== owner.id) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You don't own this community" });
+    }
+
+    if (data.slug && data.slug !== comm.slug) {
+      const existingSlug = await db.query.community.findFirst({
+        where: eq(community.slug, data.slug)
+      });
+      if (existingSlug) throw new TRPCError({ code: "CONFLICT", message: "Slug already taken" });
+    }
+
+    await db.update(community)
+      .set({
+        name: data.name ?? comm.name,
+        description: data.description ?? comm.description,
+        slug: data.slug ?? comm.slug,
+        updatedAt: new Date()
+      })
+      .where(eq(community.id, communityId));
+
+    return { success: true };
+  }
+
+  static async deleteCommunity(userId: string, communityId: string) {
+    const owner = await db.query.creator.findFirst({
+      where: eq(creator.userId, userId)
+    });
+
+    if (!owner) throw new TRPCError({ code: "BAD_REQUEST", message: "Not a creator" });
+
+    const comm = await db.query.community.findFirst({
+      where: eq(community.id, communityId)
+    });
+
+    if (!comm) throw new TRPCError({ code: "NOT_FOUND", message: "Community not found" });
+
+    if (comm.ownerId !== owner.id) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You don't own this community" });
+    }
+
+    // Manual cascade delete
+    await db.delete(communityMember).where(eq(communityMember.communityId, communityId));
+    await db.delete(community).where(eq(community.id, communityId));
+
+    return { success: true };
   }
 }

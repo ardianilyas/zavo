@@ -44,5 +44,26 @@ export const communityRouter = router({
   getMyCommunities: protectedProcedure
     .query(async ({ ctx }) => {
       return await CommunityService.getMyCommunity(ctx.session.user.id);
+    }),
+
+  update: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      data: z.object({
+        name: z.string().min(3).optional(),
+        description: z.string().optional(),
+        slug: z.string().min(3).regex(/^[a-z0-9-]+$/).optional()
+      })
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return await CommunityService.updateCommunity(ctx.session.user.id, input.id, input.data);
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({
+      id: z.string()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return await CommunityService.deleteCommunity(ctx.session.user.id, input.id);
     })
 });
