@@ -55,5 +55,19 @@ export const adminRouter = router({
       }
 
       return { success: true };
+    }),
+
+  toggleCommunityCreation: protectedProcedure
+    .input(z.object({
+      userId: z.string(),
+      canCreate: z.boolean()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const role = (ctx.session.user as any).role;
+      if (role !== "admin") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      await AdminService.toggleCommunityCreation(input.userId, input.canCreate);
+      return { success: true };
     })
 });

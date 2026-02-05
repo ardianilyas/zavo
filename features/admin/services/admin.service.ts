@@ -259,7 +259,8 @@ export class AdminService {
       const creatorResults = await db.select({
         id: creator.id,
         userId: creator.userId,
-        username: creator.username
+        username: creator.username,
+        canCreateCommunity: creator.canCreateCommunity
       }).from(creator)
         .where(sql`${creator.userId} IN ${userIds}`); // SQL templating handles the array safely usually? No.
 
@@ -271,7 +272,7 @@ export class AdminService {
       const foundCreator = creators.find(c => c.userId === u.id);
       return {
         ...u,
-        creator: foundCreator ? { id: foundCreator.id, username: foundCreator.username } : null
+        creator: foundCreator ? { id: foundCreator.id, username: foundCreator.username, canCreateCommunity: foundCreator.canCreateCommunity } : null
       };
     });
 
@@ -312,5 +313,20 @@ export class AdminService {
     await db.update(user)
       .set({ banned: false, banReason: null, suspendedUntil: null })
       .where(eq(user.id, userId));
+  }
+
+  static async toggleCommunityCreation(userId: string, canCreate: boolean) {
+    // Check if user is creator first
+    const creatorRecord = await db.query.creator.findFirst({
+      where: eq(creator.userId, userId)
+    });
+
+    if (!creatorRecord) {
+      throw new Error("User is not a creator");
+    }
+
+    await db.update(creator)
+      .set({ canCreateCommunity: canCreate })
+      .where(eq(creator.userId, userId));
   }
 }

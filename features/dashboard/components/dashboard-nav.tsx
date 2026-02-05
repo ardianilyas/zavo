@@ -63,6 +63,13 @@ export function DashboardNav() {
         </NavigationMenuItem>
         <NavigationMenuItem>
           <NavigationMenuLink asChild>
+            <Link href={getHref("/dashboard/community")} className={navigationMenuTriggerStyle()}>
+              Communities
+            </Link>
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink asChild>
             <Link href={getHref("/dashboard/settings")} className={navigationMenuTriggerStyle()}>
               Settings
             </Link>

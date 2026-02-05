@@ -55,7 +55,8 @@ import {
   ShieldAlert,
   Clock,
   Unlock,
-  Filter
+  Filter,
+  Users
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -107,6 +108,20 @@ export function UserManagementTable() {
       toast.error(err.message);
     }
   });
+
+  const toggleCommunityCreationMutation = api.admin.toggleCommunityCreation.useMutation({
+    onSuccess: () => {
+      toast.success("Updated community creation permissions");
+      refetch();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    }
+  });
+
+  const handleToggleCommunityCreation = (userId: string, canCreate: boolean) => {
+    toggleCommunityCreationMutation.mutate({ userId, canCreate });
+  };
 
   const closeDialog = () => {
     setModerationType(null);
@@ -273,6 +288,18 @@ export function UserManagementTable() {
                             >
                               <Ban className="w-4 h-4 mr-2" />
                               Ban User
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {user.creator && (
+                          <>
+                            <div className="h-px bg-border my-1" />
+                            <DropdownMenuItem
+                              onClick={() => handleToggleCommunityCreation(user.id, !user.creator.canCreateCommunity)}
+                              className="cursor-pointer"
+                            >
+                              <Users className="w-4 h-4 mr-2" />
+                              {user.creator.canCreateCommunity ? "Revoke Community" : "Allow Community"}
                             </DropdownMenuItem>
                           </>
                         )}

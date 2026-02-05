@@ -5,6 +5,7 @@ import { donationRouter } from "@/features/donation/route/router";
 import { payoutRouter } from "@/features/wallet/route/router";
 import { goalRouter } from "@/features/goal/route/router";
 import { adminRouter } from "@/features/admin/route/router";
+import { communityRouter } from "@/features/community/route/router";
 
 export const appRouter = router({
   user: userRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   payout: payoutRouter,
   goal: goalRouter,
   admin: adminRouter,
+  community: communityRouter,
 });
 
 export type AppRouter = typeof appRouter;

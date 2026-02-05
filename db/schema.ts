@@ -44,7 +44,25 @@ export const creator = pgTable("creator", {
   leaderboardOverlaySettings: json("leaderboard_overlay_settings"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  canCreateCommunity: boolean("can_create_community").default(false).notNull(),
 });
+
+export const community = pgTable("community", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  ownerId: uuid("owner_id").references(() => creator.id).notNull().unique(), // One community per creator
+  name: text("name").notNull(),
+  description: text("description"),
+  slug: text("slug").unique().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const communityMember = pgTable("community_member", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  communityId: uuid("community_id").references(() => community.id).notNull(),
+  creatorId: uuid("creator_id").references(() => creator.id).notNull(),
+  joinedAt: timestamp("joined_at").defaultNow().notNull(),
+}); // Add unique constraint manually or logically ensure uniqueness: one creator per community membership
 
 // ... session, account, verification tables ...
 
