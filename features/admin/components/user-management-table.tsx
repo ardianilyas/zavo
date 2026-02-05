@@ -60,11 +60,26 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 
+import { useUsers } from "../hooks/use-users";
+
 export function UserManagementTable() {
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "suspended" | "banned">("all");
+  const {
+    users,
+    total,
+    totalPages,
+    isLoading,
+    refetch,
+    page,
+    setPage,
+    search,
+    setSearch,
+    debouncedSearch,
+    setDebouncedSearch,
+    statusFilter,
+    setStatusFilter,
+    roleFilter,
+    setRoleFilter
+  } = useUsers();
 
   // Dialog State
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -81,13 +96,6 @@ export function UserManagementTable() {
     }, 500);
     return () => clearTimeout(handler);
   };
-
-  const { data, isLoading, refetch } = api.admin.getUsers.useQuery({
-    page,
-    limit: 10,
-    search: debouncedSearch,
-    status: statusFilter
-  });
 
   const toggleBanMutation = api.admin.toggleBan.useMutation({
     onSuccess: () => {
@@ -126,29 +134,43 @@ export function UserManagementTable() {
   const getStatusBadge = (user: any) => {
     if (user.banned) return <Badge variant="destructive" className="gap-1.5 px-2.5 py-0.5 rounded-full"><ShieldAlert className="w-3.5 h-3.5" /> Banned</Badge>;
     if (isSuspended(user)) return <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 gap-1.5 px-2.5 py-0.5 rounded-full"><Clock className="w-3.5 h-3.5" /> Suspended</Badge>;
-    return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 gap-1.5 px-2.5 py-0.5 rounded-full"><CheckCircle className="w-3.5 h-3.5" /> Active</Badge>;
+    return <Badge variant="outline" className="text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-100 gap-1.5 px-2.5 py-0.5 rounded-full"><CheckCircle className="w-3.5 h-3.5" /> Active</Badge>;
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between bg-background p-1 rounded-lg">
-        <Tabs value={statusFilter} onValueChange={(v: any) => { setStatusFilter(v); setPage(1); }} className="w-full sm:w-auto">
-          <TabsList className="bg-muted/50 p-1 h-11">
-            <TabsTrigger value="all" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">All</TabsTrigger>
-            <TabsTrigger value="active" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Active</TabsTrigger>
-            <TabsTrigger value="suspended" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Suspended</TabsTrigger>
-            <TabsTrigger value="banned" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Banned</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      <div className="flex flex-col gap-5 bg-background p-1 rounded-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <Tabs value={statusFilter} onValueChange={(v: any) => { setStatusFilter(v); setPage(1); }} className="w-full sm:w-auto">
+            <TabsList className="bg-muted/50 p-1 h-11">
+              <TabsTrigger value="all" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">All</TabsTrigger>
+              <TabsTrigger value="active" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Active</TabsTrigger>
+              <TabsTrigger value="suspended" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Suspended</TabsTrigger>
+              <TabsTrigger value="banned" className="px-5 data-[state=active]:bg-background data-[state=active]:shadow-sm">Banned</TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        <div className="relative max-w-sm w-full">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
-          <Input
-            placeholder="Search name or email..."
-            className="pl-10 h-11 border-border/60 bg-muted/20 focus-visible:ring-primary/30 focus-visible:border-primary transition-all rounded-xl"
-            value={search}
-            onChange={handleSearchChange}
-          />
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Select value={roleFilter} onValueChange={(v: any) => { setRoleFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-[140px] h-11 rounded-xl border-border/60 bg-muted/20">
+                <SelectValue placeholder="User Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="creator">Creators Only</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="relative max-w-sm w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/70" />
+              <Input
+                placeholder="Search name or email..."
+                className="pl-10 h-11 border-border/60 bg-muted/20 focus-visible:ring-primary/30 focus-visible:border-primary transition-all rounded-xl"
+                value={search}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -173,7 +195,7 @@ export function UserManagementTable() {
                   </div>
                 </TableCell>
               </TableRow>
-            ) : data?.users.length === 0 ? (
+            ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-48 text-center text-muted-foreground">
                   <div className="flex flex-col items-center gap-3 opacity-60">
@@ -186,13 +208,13 @@ export function UserManagementTable() {
                 </TableCell>
               </TableRow>
             ) : (
-              data?.users.map((user: any) => (
+              users.map((user: any) => (
                 <TableRow key={user.id} className="group hover:bg-primary/5 transition-all border-border/30">
                   <TableCell className="py-4 px-6">
                     <div className="flex items-center gap-4">
                       <Avatar className="h-11 w-11 border-2 border-background shadow-md group-hover:scale-105 transition-transform">
                         <AvatarImage src={user.image} alt={user.name} />
-                        <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/5 text-primary font-bold">
+                        <AvatarFallback className="bg-linear-to-br from-primary/10 to-primary/5 text-primary font-bold">
                           {user.name?.charAt(0) || <UserIcon className="h-5 w-5" />}
                         </AvatarFallback>
                       </Avatar>
@@ -240,7 +262,7 @@ export function UserManagementTable() {
                           <>
                             <DropdownMenuItem
                               onClick={() => { setSelectedUser(user); setModerationType("SUSPEND"); }}
-                              className="cursor-pointer"
+                              className="cursor-pointer text-amber-600 hover:text-amber-700"
                             >
                               <Clock className="w-4 h-4 mr-2" />
                               Suspend
@@ -265,10 +287,10 @@ export function UserManagementTable() {
       </div>
 
       {/* Pagination Controls */}
-      {data && data.totalPages > 1 && (
+      {totalPages > 1 && (
         <div className="flex items-center justify-between py-2 px-1">
           <span className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">
-            Records: <span className="text-foreground/80">{data.users.length}</span> of <span className="text-foreground/80">{data.total}</span>
+            Records: <span className="text-foreground/80">{users.length}</span> of <span className="text-foreground/80">{total}</span>
           </span>
           <div className="flex items-center space-x-3">
             <Button
@@ -280,15 +302,15 @@ export function UserManagementTable() {
             >
               Previous
             </Button>
-            <div className="flex items-center px-4 text-xs font-bold bg-muted/50 h-9 rounded-xl border border-border/50 min-w-[4rem] justify-center tracking-tighter">
-              {page} <span className="mx-1 text-muted-foreground/40">/</span> {data.totalPages}
+            <div className="flex items-center px-4 text-xs font-bold bg-muted/50 h-9 rounded-xl border border-border/50 min-w-16 justify-center tracking-tighter">
+              {page} <span className="mx-1 text-muted-foreground/40">/</span> {totalPages}
             </div>
             <Button
               variant="outline"
               size="sm"
               className="h-9 px-4 rounded-xl border-border/50 hover:bg-primary hover:text-primary-foreground transition-all disabled:opacity-30"
-              onClick={() => setPage((p) => Math.min(data.totalPages || 1, p + 1))}
-              disabled={page === (data.totalPages || 1) || isLoading}
+              onClick={() => setPage((p) => Math.min(totalPages || 1, p + 1))}
+              disabled={page === (totalPages || 1) || isLoading}
             >
               Next
             </Button>
@@ -352,7 +374,7 @@ export function UserManagementTable() {
             </div>
           )}
 
-          <DialogFooter className="gap-3 sm:gap-0 mt-6 sm:flex-row flex-col-reverse">
+          <DialogFooter className="gap-3 space-x-3 sm:gap-0 mt-6 sm:flex-row flex-col-reverse">
             <Button variant="ghost" onClick={closeDialog} className="flex-1 sm:flex-none h-12 rounded-xl font-bold hover:bg-muted">Cancel</Button>
             <Button
               variant={moderationType === "UNBAN" ? "default" : moderationType === "SUSPEND" ? "secondary" : "destructive"}

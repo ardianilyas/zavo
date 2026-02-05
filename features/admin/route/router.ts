@@ -23,7 +23,8 @@ export const adminRouter = router({
       page: z.number().min(1).default(1),
       limit: z.number().min(1).max(100).default(20),
       search: z.string().optional(),
-      status: z.enum(["all", "active", "suspended", "banned"]).default("all")
+      status: z.enum(["all", "active", "suspended", "banned"]).default("all"),
+      role: z.enum(["all", "creator"]).default("all")
     }))
     .query(async ({ input, ctx }) => {
       const role = (ctx.session.user as any).role;

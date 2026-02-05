@@ -194,7 +194,7 @@ export class AdminService {
 
   // --- User Management ---
 
-  static async getUsers(params: { page: number; limit: number; search?: string; status?: "all" | "active" | "suspended" | "banned" }) {
+  static async getUsers(params: { page: number; limit: number; search?: string; status?: "all" | "active" | "suspended" | "banned"; role?: "all" | "creator" }) {
     const limit = params.limit || 20;
     const offset = (params.page - 1) * limit;
     const status = params.status || "all";
@@ -204,6 +204,16 @@ export class AdminService {
     // Search Filter
     if (params.search) {
       conditions.push(sql`${user.name} ILIKE ${`%${params.search}%`} OR ${user.email} ILIKE ${`%${params.search}%`}`);
+    }
+
+    // Role Filter (Creator)
+    if (params.role === "creator") {
+      // This assumes there is a relation or we check existence.
+      // Since we are already querying the user table, we can use an EXISTS clause or simple Join if supported by the ORM helpers used here.
+      // However, looking at the code structure, we are building a `where` clause for the `user` table.
+      // If `creator` table has `userId`, we can filter users who are in the creator table.
+      // Drizzle `inArray` with a subquery is a good approach.
+      conditions.push(sql`EXISTS (SELECT 1 FROM ${creator} WHERE ${creator.userId} = ${user.id})`);
     }
 
     // Status Filter
