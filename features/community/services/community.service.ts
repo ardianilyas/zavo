@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { community, communityMember, creator, user } from "@/db/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export class CommunityService {
@@ -62,15 +62,81 @@ export class CommunityService {
     return { success: true };
   }
 
-  static async getCommunities() {
-    // List all communities
-    return await db.query.community.findMany({
-      with: {
-        // We can fetch owner details if relation defined in schema (drizzle relations)
-        // For now simplified
-      },
-      orderBy: [desc(community.createdAt)]
+  static async leaveCommunity(userId: string, communityId: string) {
+    const memberCreator = await db.query.creator.findFirst({
+      where: eq(creator.userId, userId)
     });
+
+    if (!memberCreator) throw new TRPCError({ code: "BAD_REQUEST", message: "Not a creator" });
+
+    // Check if is owner - cannot leave own community
+    const comm = await db.query.community.findFirst({
+      where: eq(community.id, communityId)
+    });
+
+    if (comm?.ownerId === memberCreator.id) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Cannot leave your own community. Delete it instead." });
+    }
+
+    await db.delete(communityMember)
+      .where(and(
+        eq(communityMember.communityId, communityId),
+        eq(communityMember.creatorId, memberCreator.id)
+      ));
+
+    return { success: true };
+  }
+
+  static async getCommunities(userId?: string) {
+    // Get all communities with owner info
+    const communities = await db.select({
+      id: community.id,
+      name: community.name,
+      description: community.description,
+      slug: community.slug,
+      createdAt: community.createdAt,
+      owner: {
+        id: creator.id,
+        name: creator.name,
+        username: creator.username,
+        image: creator.image
+      }
+    })
+      .from(community)
+      .leftJoin(creator, eq(community.ownerId, creator.id))
+      .orderBy(desc(community.createdAt));
+
+    // Get member counts for each community
+    const memberCounts = await db.select({
+      communityId: communityMember.communityId,
+      count: count()
+    })
+      .from(communityMember)
+      .groupBy(communityMember.communityId);
+
+    const countMap = new Map(memberCounts.map(c => [c.communityId, c.count]));
+
+    // Check which communities the current user has joined (if userId provided)
+    let joinedCommunityIds: Set<string> = new Set();
+    if (userId) {
+      const userCreator = await db.query.creator.findFirst({
+        where: eq(creator.userId, userId)
+      });
+
+      if (userCreator) {
+        const memberships = await db.select({ communityId: communityMember.communityId })
+          .from(communityMember)
+          .where(eq(communityMember.creatorId, userCreator.id));
+
+        joinedCommunityIds = new Set(memberships.map(m => m.communityId));
+      }
+    }
+
+    return communities.map(c => ({
+      ...c,
+      memberCount: countMap.get(c.id) || 0,
+      isJoined: joinedCommunityIds.has(c.id)
+    }));
   }
 
   static async getCommunityBySlug(slug: string) {

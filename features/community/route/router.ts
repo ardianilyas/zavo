@@ -22,9 +22,17 @@ export const communityRouter = router({
       return await CommunityService.joinCommunity(ctx.session.user.id, input.communityId);
     }),
 
-  getAll: publicProcedure
-    .query(async () => {
-      return await CommunityService.getCommunities();
+  leave: protectedProcedure
+    .input(z.object({
+      communityId: z.string()
+    }))
+    .mutation(async ({ input, ctx }) => {
+      return await CommunityService.leaveCommunity(ctx.session.user.id, input.communityId);
+    }),
+
+  getAll: protectedProcedure
+    .query(async ({ ctx }) => {
+      return await CommunityService.getCommunities(ctx.session.user.id);
     }),
 
   getBySlug: publicProcedure

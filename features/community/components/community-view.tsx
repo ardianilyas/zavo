@@ -8,10 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, Plus, Users } from "lucide-react";
+import { Loader2, Plus, Users, LogOut, LogIn, Crown } from "lucide-react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
@@ -33,7 +36,8 @@ const createCommunitySchema = z.object({
 type CreateCommunityValues = z.infer<typeof createCommunitySchema>;
 
 export function CommunityView() {
-  const { data: myCommunities, isLoading, refetch } = api.community.getMyCommunities.useQuery();
+  const { data: myCommunities, isLoading: myLoading, refetch: refetchMy } = api.community.getMyCommunities.useQuery();
+  const { data: allCommunities, isLoading: allLoading, refetch: refetchAll } = api.community.getAll.useQuery();
   const [isOpen, setIsOpen] = useState(false);
 
   const form = useForm<CreateCommunityValues>({
@@ -50,7 +54,30 @@ export function CommunityView() {
       toast.success("Community created successfully!");
       setIsOpen(false);
       form.reset();
-      refetch();
+      refetchMy();
+      refetchAll();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    }
+  });
+
+  const joinMutation = api.community.join.useMutation({
+    onSuccess: () => {
+      toast.success("Joined community!");
+      refetchMy();
+      refetchAll();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    }
+  });
+
+  const leaveMutation = api.community.leave.useMutation({
+    onSuccess: () => {
+      toast.success("Left community");
+      refetchMy();
+      refetchAll();
     },
     onError: (err) => {
       toast.error(err.message);
@@ -60,6 +87,8 @@ export function CommunityView() {
   const onSubmit = (data: CreateCommunityValues) => {
     createMutation.mutate(data);
   };
+
+  const isLoading = myLoading || allLoading;
 
   if (isLoading) return <div className="flex justify-center p-10"><Loader2 className="animate-spin" /></div>;
 
@@ -141,40 +170,130 @@ export function CommunityView() {
         )}
       </div>
 
-      <div className="grid gap-6">
-        {myCommunities?.owned && (
-          <Card className="border-primary/20 bg-primary/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                {myCommunities.owned.name} (Owner)
-              </CardTitle>
-              <CardDescription>{myCommunities.owned.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">Slug: {myCommunities.owned.slug}</p>
-            </CardContent>
-            <CardFooter>
-              <Button variant="outline">Manage Members</Button>
-            </CardFooter>
-          </Card>
-        )}
+      <Tabs defaultValue="browse" className="w-full">
+        <TabsList>
+          <TabsTrigger value="browse">Browse Communities</TabsTrigger>
+          <TabsTrigger value="my">My Communities</TabsTrigger>
+        </TabsList>
 
-        {myCommunities?.joined?.length ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {myCommunities.joined.map((c: any) => (
-              <Card key={c.id}>
+        <TabsContent value="browse" className="mt-6">
+          {allCommunities?.length ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {allCommunities.map((c: any) => (
+                <Card key={c.id} className="group hover:shadow-md transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-1">
+                        <CardTitle className="flex items-center gap-2">
+                          {c.name}
+                        </CardTitle>
+                        <CardDescription className="line-clamp-2">{c.description || "No description"}</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={c.owner?.image} />
+                        <AvatarFallback>{c.owner?.name?.charAt(0) || "?"}</AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm">
+                        <p className="font-medium flex items-center gap-1">
+                          <Crown className="h-3 w-3 text-amber-500" />
+                          {c.owner?.name || "Unknown"}
+                        </p>
+                        <p className="text-muted-foreground text-xs">@{c.owner?.username}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Badge variant="secondary" className="gap-1">
+                        <Users className="h-3 w-3" />
+                        {c.memberCount} members
+                      </Badge>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    {c.isJoined ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => leaveMutation.mutate({ communityId: c.id })}
+                        disabled={leaveMutation.isPending}
+                        className="w-full"
+                      >
+                        {leaveMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogOut className="mr-2 h-4 w-4" />}
+                        Leave
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => joinMutation.mutate({ communityId: c.id })}
+                        disabled={joinMutation.isPending}
+                        className="w-full"
+                      >
+                        {joinMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
+                        Join
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center p-10 text-muted-foreground">No communities available yet. Be the first to create one!</div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="my" className="mt-6">
+          <div className="grid gap-6">
+            {myCommunities?.owned && (
+              <Card className="border-primary/20 bg-primary/5">
                 <CardHeader>
-                  <CardTitle>{c.name}</CardTitle>
-                  <CardDescription>{c.description}</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Crown className="h-5 w-5 text-amber-500" />
+                    {myCommunities.owned.name}
+                    <Badge variant="default" className="ml-2">Owner</Badge>
+                  </CardTitle>
+                  <CardDescription>{myCommunities.owned.description}</CardDescription>
                 </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">Slug: {myCommunities.owned.slug}</p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="outline">Manage Members</Button>
+                </CardFooter>
               </Card>
-            ))}
+            )}
+
+            {myCommunities?.joined?.length ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {myCommunities.joined.filter((c: any) => c?.id !== myCommunities?.owned?.id).map((c: any) => (
+                  <Card key={c.id}>
+                    <CardHeader>
+                      <CardTitle>{c.name}</CardTitle>
+                      <CardDescription>{c.description}</CardDescription>
+                    </CardHeader>
+                    <CardFooter>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => leaveMutation.mutate({ communityId: c.id })}
+                        disabled={leaveMutation.isPending}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Leave
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              !myCommunities?.owned && <div className="text-center p-10 text-muted-foreground">You haven't joined any communities yet.</div>
+            )}
           </div>
-        ) : (
-          !myCommunities?.owned && <div className="text-center p-10 text-muted-foreground">You haven't joined any communities yet.</div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
+
