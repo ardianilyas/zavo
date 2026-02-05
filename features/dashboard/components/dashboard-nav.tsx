@@ -112,10 +112,10 @@ export function DashboardNav() {
                     <NavigationMenuLink asChild>
                       <Link
                         href="/dashboard/admin"
-                        className="group flex flex-row items-start gap-3 rounded-xl p-3 transition-all hover:bg-gray-100/80 dark:hover:bg-gray-800/50"
+                        className="group flex flex-row items-start gap-3 rounded-xl p-3 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-sm shadow-blue-500/25">
-                          <LayoutDashboard className="h-5 w-5" />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-100 to-blue-200 text-white shadow-sm shadow-blue-500/25">
+                          <LayoutDashboard className="h-5 w-5 text-blue-700" />
                         </div>
                         <div className="min-w-0">
                           <div className="font-medium text-sm text-gray-900 dark:text-gray-100">Overview</div>
@@ -127,10 +127,10 @@ export function DashboardNav() {
                     <NavigationMenuLink asChild>
                       <Link
                         href="/dashboard/admin/users"
-                        className="group flex flex-row items-start gap-3 rounded-xl p-3 transition-all hover:bg-gray-100/80 dark:hover:bg-gray-800/50"
+                        className="group flex flex-row items-start gap-3 rounded-xl p-3 transition-all hover:bg-gray-50 dark:hover:bg-gray-800/50"
                       >
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-sm shadow-violet-500/25">
-                          <Users className="h-5 w-5" />
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-violet-100 to-purple-200 text-white shadow-sm shadow-violet-500/25">
+                          <Users className="h-5 w-5 text-purple-700" />
                         </div>
                         <div className="min-w-0">
                           <div className="font-medium text-sm text-gray-900 dark:text-gray-100">Users</div>
